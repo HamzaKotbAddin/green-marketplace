@@ -31,5 +31,5 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### git config
 
 ```
---global core.autocrlf false
+git config --global core.autocrlf false
 ```
