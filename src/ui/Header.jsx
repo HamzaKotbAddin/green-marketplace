@@ -65,7 +65,7 @@ const Header = ({ setCurrentPage }) => {
               Home
             </button>
             <button onClick={() => setCurrentPage('products')} className="block w-full text-left py-2 px-4 hover:text-green-200">
-              food
+              Products
             </button>
             <button onClick={() => setCurrentPage('about')} className="block w-full text-left py-2 px-4 hover:text-green-200">
               About
