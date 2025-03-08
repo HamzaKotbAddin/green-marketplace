@@ -1,7 +1,6 @@
-// src/pages/ProductsPage.jsx
 import React, { useState, useEffect } from 'react';
 
-const ProductsPage = () => {
+const ProductsPage = ({ goBack }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
@@ -70,6 +69,14 @@ const ProductsPage = () => {
           Proceed to Payment
         </button>
       </div>
+
+      {/* Go back button */}
+      <button
+        onClick={goBack}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mt-4"
+      >
+        Back to Home
+      </button>
     </div>
   );
 };
