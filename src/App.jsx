@@ -7,6 +7,7 @@ import ProductsPage from './pages/ProductsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import CartPage from './pages/CartPage';
+import PaymentPage from './pages/PaymentPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -17,12 +18,11 @@ function App() {
     setCart((prevCart) => [...prevCart, product]); // Append new item to cart
   };
 
-  // Remove from cart function (optional)
+  // Remove from cart function 
   const removeFromCart = (id) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  // Render the correct page
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -31,6 +31,8 @@ function App() {
         return <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart} />;
       case 'cart':
         return <CartPage cart={cart} setCurrentPage={setCurrentPage} removeFromCart={removeFromCart} />;
+      case 'payment':
+        return <PaymentPage cart={cart} setCurrentPage={setCurrentPage} />;
       case 'about':
         return <AboutPage setCurrentPage={setCurrentPage} />;
       case 'contact':
