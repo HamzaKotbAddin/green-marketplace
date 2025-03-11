@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import { ecoProductDictionary, specificProducts, visualIndicators } from "../../ecoProductData";
 
 const Certification = () => {
   const [image, setImage] = useState(null);
@@ -11,51 +12,7 @@ const Certification = () => {
   const imageRef = useRef(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-  // Dictionary of eco-product categories and related terms
-  const ecoProductDictionary = {
-    // Product categories
-    categories: {
-      "coffee_accessories": ["coffee", "pod", "mug", "cup", "thermos", "tumbler", "grinder"],
-      "bags_and_accessories": ["bag", "tote", "wallet", "purse", "backpack", "handbag"],
-      "kitchen_and_home": ["kitchen", "compost", "bin", "mat", "utensil", "straw", "wrap", "container"],
-      "personal_care": ["soap", "toothbrush", "floss", "dental", "shampoo", "conditioner", "lotion"],
-      "clothing_and_apparel": ["clothing", "shirt", "pants", "dress", "jacket", "sock", "underwear"],
-      "outdoor_and_garden": ["garden", "plant", "seed", "pot", "camping", "outdoor", "furniture"],
-      "pet_products": ["pet", "dog", "cat", "toy", "treat", "bed", "leash", "collar"],
-      "office_supplies": ["office", "paper", "notebook", "pen", "pencil", "stapler", "organizer"]
-    },
-    
-    // Material indicators
-    materials: {
-      "sustainable_materials": ["bamboo", "cork", "hemp", "jute", "organic cotton", "linen", "wool", 
-                                "recycled", "upcycled", "repurposed", "compostable", "biodegradable"],
-      "plastic_alternatives": ["glass", "metal", "silicone", "wood", "paper", "cardboard", "stainless steel", 
-                               "ceramic", "stone", "plant fiber"],
-    },
-    
-    // Certifications and features
-    features: {
-      "certifications": ["organic", "fair trade", "vegan", "cruelty-free", "B Corp", "certified", 
-                         "eco-friendly", "sustainable", "green", "ethical"],
-      "product_attributes": ["reusable", "zero waste", "plastic-free", "chemical-free", "natural", 
-                             "handmade", "locally made", "solar", "energy-efficient", "waste-reducing"]
-    }
-  };
-  
-  // List of specific eco-friendly products to detect
-  const specificProducts = [
-    "reusable coffee pod", "coffee pod", "vegan leather", "tote bag", "compost bin", 
-    "silk dental floss", "dental floss", "dishwashing soap", "soap bar", 
-    "organic clothing", "reusable baking mat", "wallet", "pod", "floss", "soap"
-  ];
-  
-  // Common objects in eco-product photos
-  const visualIndicators = [
-    "plant", "leaf", "wood", "bamboo", "green", "recycling symbol", "earth", 
-    "water", "tree", "sunlight", "garden", "nature", "cotton", "glass jar", 
-    "canvas bag", "wooden utensil", "metal straw", "silicone lid"
-  ];
+  const DOMINANT_PREDICTION_THRESHOLD = 0.4; // 40% threshold for dominant prediction
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -77,7 +34,7 @@ const Certification = () => {
     term = term.toLowerCase();
     const results = [];
     
-    // Check categories
+    // Check product categories
     for (const [category, keywords] of Object.entries(ecoProductDictionary.categories)) {
       for (const keyword of keywords) {
         if (term.includes(keyword) || keyword.includes(term)) {
@@ -143,6 +100,93 @@ const Certification = () => {
       }
     }
     
+    // Check negative indicators - with more exact matching
+    for (const [category, keywords] of Object.entries(ecoProductDictionary.negative_indicators)) {
+      for (const keyword of keywords) {
+        // For negative indicators, we want to be more precise with matching
+        // Use a more exact match strategy instead of partial includes
+        if (
+          term === keyword || 
+          term.includes(' ' + keyword + ' ') || 
+          term.startsWith(keyword + ' ') || 
+          term.endsWith(' ' + keyword)
+        ) {
+          results.push({
+            match: keyword,
+            category: category,
+            type: "negative_indicator",
+            score: -1.5 // Negative score to subtract from total
+          });
+        }
+      }
+    }
+    
+    // Check materials
+    for (const [material, keywords] of Object.entries(ecoProductDictionary.materials)) {
+      for (const keyword of keywords) {
+        if (term.includes(keyword) || keyword.includes(term)) {
+          results.push({
+            match: keyword,
+            category: material,
+            type: "material",
+            score: 1.2
+          });
+        }
+      }
+    }
+    
+    // Check features
+    for (const [feature, keywords] of Object.entries(ecoProductDictionary.features)) {
+      for (const keyword of keywords) {
+        if (term.includes(keyword) || keyword.includes(term)) {
+          results.push({
+            match: keyword,
+            category: feature,
+            type: "feature",
+            score: 1.5
+          });
+        }
+      }
+    }
+    
+    // Check specific products
+    for (const product of specificProducts) {
+      if (term.includes(product) || product.includes(term)) {
+        results.push({
+          match: product,
+          category: "specific_product",
+          type: "exact_match",
+          score: 2.0
+        });
+      }
+    }
+    
+    // Check visual indicators
+    for (const indicator of visualIndicators) {
+      if (term.includes(indicator) || indicator.includes(term)) {
+        results.push({
+          match: indicator,
+          category: "visual_indicator",
+          type: "visual",
+          score: 0.7
+        });
+      }
+    }
+    
+    // Check negative indicators (NEW)
+    for (const [category, keywords] of Object.entries(ecoProductDictionary.negative_indicators)) {
+      for (const keyword of keywords) {
+        if (term.includes(keyword) || keyword.includes(term)) {
+          results.push({
+            match: keyword,
+            category: category,
+            type: "negative_indicator",
+            score: -1.5 // Negative score to subtract from total
+          });
+        }
+      }
+    }
+    
     return results;
   };
 
@@ -154,25 +198,48 @@ const Certification = () => {
 
     setIsLoading(true);
     try {
-      // Load MobileNet with more predictions
+      // Load MobileNet
       const model = await mobilenet.load({
         version: 2,
         alpha: 1.0
       });
       
-      // Get more predictions
+      // Get predictions
       const predictions = await model.classify(imageRef.current, 20);
       setAllPredictions(predictions);
       console.log("All predictions:", predictions);
 
+      // Check for dominant non-eco-friendly prediction
+      const topPrediction = predictions[0];
+      const isTopPredictionDominant = topPrediction.probability > DOMINANT_PREDICTION_THRESHOLD;
+      
+      // If the top prediction is dominant, check if it's a negative indicator
+      let dominantNegativeScore = 0;
+      if (isTopPredictionDominant) {
+        const topPredText = topPrediction.className.toLowerCase();
+        
+        // Check if the dominant prediction is a negative indicator
+        for (const [category, keywords] of Object.entries(ecoProductDictionary.negative_indicators)) {
+          for (const keyword of keywords) {
+            if (topPredText.includes(keyword)) {
+              dominantNegativeScore -= (topPrediction.probability * 2); // Stronger penalty for dominant negative predictions
+              console.log(`Dominant negative prediction detected: ${keyword} (${topPrediction.probability})`);
+              break;
+            }
+          }
+          if (dominantNegativeScore < 0) break; // Found a match, no need to check more
+        }
+      }
+
       // Enhanced matching logic with context
-      let totalScore = 0;
+      let totalScore = dominantNegativeScore; // Start with any penalty from dominant negative prediction
       let matchedFeatures = [];
       let matchDetails = [];
       let detectedCategories = new Set();
       let detectedMaterials = new Set();
       let detectedAttributes = new Set();
       let detectedProducts = new Set();
+      let detectedNegatives = new Set();
       
       // First pass: analyze each prediction and split into word tokens
       for (const pred of predictions) {
@@ -182,7 +249,17 @@ const Certification = () => {
         const wholeTextMatches = analyzeCategory(predictionText);
         for (const match of wholeTextMatches) {
           const weightedScore = match.score * pred.probability;
-          totalScore += weightedScore;
+          
+          // For negative indicators, reduce the impact for lower-confidence predictions
+          if (match.type === "negative_indicator") {
+            // Less impactful if it's not a top prediction
+            const adjustedScore = pred.probability > 0.3 ? weightedScore : weightedScore * 0.5;
+            totalScore += adjustedScore;
+            
+            detectedNegatives.add(match.category);
+          } else {
+            totalScore += weightedScore;
+          }
           
           matchDetails.push({
             term: predictionText,
@@ -210,8 +287,18 @@ const Certification = () => {
           if (word.length > 2) { // Ignore very short words
             const wordMatches = analyzeCategory(word);
             for (const match of wordMatches) {
-              const weightedScore = match.score * pred.probability * 0.7; // Slightly less weight for individual words
-              totalScore += weightedScore;
+              // Less weight for individual words
+              const weightedScore = match.score * pred.probability * 0.7;
+              
+              if (match.type === "negative_indicator") {
+                // Less impactful for individual words
+                const adjustedScore = weightedScore * 0.5;
+                totalScore += adjustedScore;
+                
+                detectedNegatives.add(match.category);
+              } else {
+                totalScore += weightedScore;
+              }
               
               matchDetails.push({
                 term: predictionText,
@@ -238,12 +325,15 @@ const Certification = () => {
       }
       
       // Bonus points for having multiple eco-friendly indicators
-      const diversityBonus = (
-        detectedCategories.size * 0.1 + 
-        detectedMaterials.size * 0.15 + 
-        detectedAttributes.size * 0.2 + 
-        detectedProducts.size * 0.25
-      );
+      let diversityBonus = 0;
+      if (detectedNegatives.size === 0 || totalScore > 0) {
+        diversityBonus = (
+          detectedCategories.size * 0.1 + 
+          detectedMaterials.size * 0.15 + 
+          detectedAttributes.size * 0.2 + 
+          detectedProducts.size * 0.25
+        );
+      }
       
       totalScore += diversityBonus;
       
@@ -252,12 +342,18 @@ const Certification = () => {
       console.log("Materials:", [...detectedMaterials]);
       console.log("Attributes:", [...detectedAttributes]);
       console.log("Products:", [...detectedProducts]);
+      console.log("Negatives:", [...detectedNegatives]);
       console.log("Diversity bonus:", diversityBonus);
+      console.log("Total score:", totalScore);
+      
+      // Apply minimum score threshold for eco-friendliness
+      if (totalScore < 0.1) totalScore = 0;
       
       // Scale the score to a 5-star rating with improved scaling
-      // Base scale: 0.1 -> 1.5 stars, 0.2 -> 2.5 stars, 0.3 -> 3.5 stars, 0.4+ -> 4.5-5 stars
       let scaledScore;
-      if (totalScore < 0.1) {
+      if (totalScore <= 0) {
+        scaledScore = 0; // Ensure negative scores become 0
+      } else if (totalScore < 0.1) {
         scaledScore = totalScore * 10; // 0-1 stars range
       } else if (totalScore < 0.2) {
         scaledScore = 1 + (totalScore - 0.1) * 15; // 1-2.5 stars range
@@ -269,13 +365,22 @@ const Certification = () => {
         scaledScore = 4.5 + Math.min(0.5, (totalScore - 0.4) * 5); // 4.5-5 stars max
       }
       
+      // Cap at 5.0
+      scaledScore = Math.min(5.0, Math.max(0, scaledScore));
+      
       // Apply rating and confidence level
       const ecoConfidenceLevel = 
-        scaledScore < 1.0 ? "No eco-friendly indicators" :
-        scaledScore < 2.5 ? "Possible eco-friendly product" :
-        scaledScore < 3.5 ? "Likely eco-friendly product" :
-        scaledScore < 4.5 ? "Highly likely eco-friendly product" :
-        "Confirmed eco-friendly product";
+        scaledScore <= 0.5 ? "Not eco-friendly" :
+        scaledScore < 1.5 ? "Probably not eco-friendly" :
+        scaledScore < 2.5 ? "Possibly eco-friendly" :
+        scaledScore < 3.5 ? "Likely eco-friendly" :
+        scaledScore < 4.5 ? "Very likely eco-friendly" :
+        "Confirmed eco-friendly";
+      
+      // Check for negative overrides (if many negative indicators are present, override high scores)
+      if (detectedNegatives.size > 1 && scaledScore > 3.0) {
+        scaledScore = Math.min(scaledScore, 3.0);
+      }
       
       // Prepare detection summary
       const detectionSummary = [];
@@ -291,6 +396,7 @@ const Certification = () => {
       if (detectedAttributes.size > 0) {
         detectionSummary.push(`Features: ${[...detectedAttributes].map(a => a.replace('_', ' ')).join(', ')}`);
       }
+
       
       setResult({
         ecoFriendly: scaledScore >= 2.5,
@@ -304,7 +410,8 @@ const Certification = () => {
           categories: [...detectedCategories],
           materials: [...detectedMaterials],
           attributes: [...detectedAttributes],
-          products: [...detectedProducts]
+          products: [...detectedProducts],
+          negatives: [...detectedNegatives]
         }
       });
     } catch (error) {
@@ -374,7 +481,7 @@ const Certification = () => {
             {/* Results header with icon */}
             <div className="flex items-center justify-center mt-2">
               <span className="text-2xl mr-2">
-                {result.ecoFriendly ? "✅" : "❓"}
+                {result.ecoFriendly ? "✅" : result.score > 1.5 ? "❓" : "❌"}
               </span>
               <span className="text-lg font-medium">
                 {result.confidenceLevel}
@@ -401,9 +508,12 @@ const Certification = () => {
             {/* Detection summary */}
             {result.detectionSummary && result.detectionSummary.length > 0 && (
               <div className="mt-4 p-3 bg-green-50 rounded-md">
-                <p className="text-sm font-medium text-green-800 mb-2">Detected eco-friendly characteristics:</p>
+                <p className="text-sm font-medium text-green-800 mb-2">Analysis results:</p>
                 {result.detectionSummary.map((item, index) => (
-                  <p key={index} className="text-sm text-green-700 mb-1">{item}</p>
+                  <p key={index} 
+                     className={`text-sm mb-1 ${item.includes("Warning") ? "text-red-700" : "text-green-700"}`}>
+                    {item}
+                  </p>
                 ))}
               </div>
             )}
@@ -432,8 +542,10 @@ const Certification = () => {
           <p className="font-medium">All detected elements:</p>
           <ul className="mt-2 space-y-1">
             {allPredictions.map((pred, index) => (
-              <li key={index}>
+              <li key={index} className={index === 0 ? "font-medium" : ""}>
                 {pred.className}: {(pred.probability * 100).toFixed(1)}%
+                {index === 0 && pred.probability > DOMINANT_PREDICTION_THRESHOLD && 
+                  " (dominant prediction)"}
               </li>
             ))}
           </ul>

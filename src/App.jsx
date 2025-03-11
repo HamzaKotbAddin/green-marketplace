@@ -6,17 +6,31 @@ import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import CartPage from './pages/CartPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
+  const [cart, setCart] = useState([]);
 
-  // Simple page rendering based on state
+  // Add to cart function
+  const addToCart = (product) => {
+    setCart((prevCart) => [...prevCart, product]); // Append new item to cart
+  };
+
+  // Remove from cart function (optional)
+  const removeFromCart = (id) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  // Render the correct page
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
         return <HomePage setCurrentPage={setCurrentPage} />;
       case 'products':
-        return <ProductsPage setCurrentPage={setCurrentPage} />;
+        return <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart} />;
+      case 'cart':
+        return <CartPage cart={cart} setCurrentPage={setCurrentPage} removeFromCart={removeFromCart} />;
       case 'about':
         return <AboutPage setCurrentPage={setCurrentPage} />;
       case 'contact':

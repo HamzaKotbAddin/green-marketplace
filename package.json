@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google-cloud/vision": "^4.3.3",
+    "@google-pay/button-react": "^3.1.0",
     "@paypal/react-paypal-js": "^8.8.2",
     "@tailwindcss/vite": "^4.0.10",
     "@tensorflow-models/mobilenet": "^2.1.1",
