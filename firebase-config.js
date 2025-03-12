@@ -1,9 +1,7 @@
-console.log("Firebase script is running");
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut  } from "firebase/auth";
+import { getFirestore, collection, addDoc} from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Firebase config
 const firebaseConfig = {
@@ -18,14 +16,11 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-// Initialize Firebase Authentication and get a reference to the service
+
+// Firebase services
 const auth = getAuth(app);
-
-
-// Initialize Firestore
 const db = getFirestore(app);
-
-// Initialize Firebase Storage
 const storage = getStorage(app);
 
-export { auth, db, storage };
+// Export Firebase services for use in other files
+export { auth, db, storage, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider,signOut, addDoc, collection  };

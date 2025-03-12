@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase-config";
-
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, auth } from '../../firebase-config';
 
 const LoginPage = ({ setCurrentPage }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false); // State to toggle between login and register
 
   // Handle email and password login
   const handleLoginWithEmailPassword = async () => {
@@ -18,6 +17,27 @@ const LoginPage = ({ setCurrentPage }) => {
       console.error(error);
     }
   };
+
+  // Handle user registration
+  const handleRegister = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      setCurrentPage('home'); // Redirect to home after successful registration
+    } catch (error) {
+      // Set specific error message based on Firebase error code
+      if (error.code === 'auth/email-already-in-use') {
+        setError('This email is already in use.');
+      } else if (error.code === 'auth/invalid-email') {
+        setError('Invalid email format.');
+      } else if (error.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters long.');
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+      console.error(error);
+    }
+  };
+  
 
   // Handle Google login
   const handleGoogleLogin = async () => {
@@ -33,10 +53,12 @@ const LoginPage = ({ setCurrentPage }) => {
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <h1 className="text-3xl font-bold text-green-800 mb-6">Login</h1>
+      <h1 className="text-3xl font-bold text-green-800 mb-6">{isRegistering ? 'Register' : 'Login'}</h1>
+
       {error && <p className="text-red-600">{error}</p>}
 
-      {/* Email and Password login */}
+      {/* Toggle form */}
+      <form autoComplete="on">
       <div className="mb-4">
         <input
           type="email"
@@ -53,18 +75,31 @@ const LoginPage = ({ setCurrentPage }) => {
           className="w-full p-2 border rounded-md"
         />
       </div>
+      </form>
+      {/* Login or Register button */}
       <button
-        onClick={handleLoginWithEmailPassword}
+        onClick={isRegistering ? handleRegister : handleLoginWithEmailPassword}
         className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition w-full mb-4"
       >
-        Login
+        {isRegistering ? 'Register' : 'Login'}
       </button>
-      <div>
-     
-      <button className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition w-full mb-4" >regsiter </button>
-      </div>
-   
-      {/* Google Sign-in Button */}
+
+      {/* Toggle between Register and Login */}
+      <p className="text-center">
+        {isRegistering ? (
+          <span>
+            Already have an account?{' '}
+            <button onClick={() => setIsRegistering(false)} className="text-blue-600">Login</button>
+          </span>
+        ) : (
+          <span>
+            Don't have an account?{' '}
+            <button onClick={() => setIsRegistering(true)} className="text-blue-600">Register</button>
+          </span>
+        )}
+      </p>
+
+      {/* Google Sign-in */}
       <div className="flex items-center space-x-4">
         <button onClick={handleGoogleLogin} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition w-full">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,7 +122,7 @@ const LoginPage = ({ setCurrentPage }) => {
         Back to Cart
       </button>
     </div>
-  )
-}
+  );
+};
 
 export default LoginPage;
