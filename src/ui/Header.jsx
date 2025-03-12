@@ -5,7 +5,7 @@ const Header = ({ setCurrentPage }) => {
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  }
 
   return (
     <header className="bg-green-600 text-white shadow-md">
@@ -52,7 +52,7 @@ const Header = ({ setCurrentPage }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </button>
-            <button className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition">
+            <button  onClick={() => setCurrentPage('login')} className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition">
               Login
             </button>
           </div>

@@ -14,7 +14,7 @@ const CartPage = ({ cart, setCurrentPage, removeFromCart }) => {
                     style={{ backgroundImage: `url(${item.image})`, backgroundSize: 'cover' }}
                   ></div>
                   <h3 className="text-lg font-semibold text-green-700">{item.title}</h3>
-                  <p className="text-gray-600 mb-2">${item.price}</p>
+                  <p className="text-gray-600 mb-2">{item.price}</p>
                   <button
                     onClick={() => removeFromCart(item.id)}
                     className="bg-red-600 text-white px-4 py-2 rounded w-full hover:bg-red-700 transition"

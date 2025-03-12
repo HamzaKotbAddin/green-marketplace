@@ -124,7 +124,6 @@ const HomePage = ({ setCurrentPage }) => {
   );
 };
 
-// CustomAnimations component ((fix it for global style component))
 const CustomAnimations = () => (
   <style jsx global>{`
     @keyframes float {
@@ -182,7 +181,6 @@ const CustomAnimations = () => (
 
 const HomePageWithAnimations = (props) => (
   <>
-    <CustomAnimations />
     <HomePage {...props} />
   </>
 );

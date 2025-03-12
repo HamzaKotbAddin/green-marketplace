@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { auth } from './firebaseConfig'; // Import Firebase auth
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase-config";
+
 
 const LoginPage = ({ setCurrentPage }) => {
   const [email, setEmail] = useState('');
@@ -58,7 +59,11 @@ const LoginPage = ({ setCurrentPage }) => {
       >
         Login
       </button>
-
+      <div>
+     
+      <button className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition w-full mb-4" >regsiter </button>
+      </div>
+   
       {/* Google Sign-in Button */}
       <div className="flex items-center space-x-4">
         <button onClick={handleGoogleLogin} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition w-full">
@@ -82,7 +87,7 @@ const LoginPage = ({ setCurrentPage }) => {
         Back to Cart
       </button>
     </div>
-  );
-};
+  )
+}
 
 export default LoginPage;

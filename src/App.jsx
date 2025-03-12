@@ -8,6 +8,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
+import LoginPage from './pages/LoginPage ';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -37,6 +38,8 @@ function App() {
         return <AboutPage setCurrentPage={setCurrentPage} />;
       case 'contact':
         return <ContactPage setCurrentPage={setCurrentPage} />;
+        case 'login':
+          return <LoginPage setCurrentPage={setCurrentPage} />;
       default:
         return <HomePage setCurrentPage={setCurrentPage} />;
     }
