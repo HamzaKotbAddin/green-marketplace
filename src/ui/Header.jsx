@@ -59,6 +59,16 @@ const Header = ({ setCurrentPage }) => {
             <button onClick={() => setCurrentPage('contact')} className="hover:text-green-200 transition">
               Contact
             </button>
+            {isLoggedIn && (
+              <>
+                <button onClick={() => setCurrentPage('add-product')} className="hover:text-green-200 transition">
+                  Add Product
+                </button>
+                <button onClick={() => setCurrentPage('manage-products')} className="hover:text-green-200 transition">
+                  Manage Products
+                </button>
+              </>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -107,6 +117,16 @@ const Header = ({ setCurrentPage }) => {
             <button onClick={() => setCurrentPage('contact')} className="block w-full text-left py-2 px-4 hover:text-green-200">
               Contact
             </button>
+            {isLoggedIn && (
+              <>
+                <button onClick={() => setCurrentPage('add-product')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+                  Add Product
+                </button>
+                <button onClick={() => setCurrentPage('manage-products')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+                  Manage Products
+                </button>
+              </>
+            )}
           </nav>
         )}
       </div>

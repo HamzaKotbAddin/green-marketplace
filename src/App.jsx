@@ -9,6 +9,8 @@ import ContactPage from './pages/ContactPage';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
 import LoginPage from './pages/LoginPage .jsx';
+import AddProductPage from './pages/AddProductPage';
+import ManageProductsPage from './pages/ManageProductsPage';
 import { db } from '../firebase-config';
 
 function App() {
@@ -181,6 +183,10 @@ function App() {
         return <ContactPage setCurrentPage={setCurrentPage} />;
       case 'login':
         return <LoginPage setCurrentPage={setCurrentPage} setUser={handleLogin} />;
+      case 'add-product':
+        return <AddProductPage setCurrentPage={setCurrentPage} />;
+      case 'manage-products':
+        return <ManageProductsPage setCurrentPage={setCurrentPage} />;
       default:
         return <HomePage setCurrentPage={setCurrentPage} />;
     }
