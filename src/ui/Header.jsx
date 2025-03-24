@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { auth, signOut } from '../../firebase-config'; // Make sure to import signOut from firebase-config
+import { useNavigate } from 'react-router-dom';
+import { auth, signOut } from '../firebase-config';
 
-const Header = ({ setCurrentPage }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // Check if user is logged in
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsLoggedIn(true);
-        // Extract the username (email before @gmail.com)
         const name = user.email.split('@')[0];
         setUserName(name);
       } else {
@@ -19,7 +19,6 @@ const Header = ({ setCurrentPage }) => {
         setUserName('');
       }
     });
-
     return () => unsubscribe(); // Clean up the listener when the component unmounts
   }, []);
 
@@ -27,11 +26,16 @@ const Header = ({ setCurrentPage }) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
 
+  // Handle navigation
+  const setCurrentPage = (page) => {
+    navigate(`/${page === 'home' ? '' : page}`);
+  };
+
   // Handle logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setCurrentPage('home'); // Redirect to home or other page after logout
+      navigate('/'); // Redirect to home after logout
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -42,9 +46,8 @@ const Header = ({ setCurrentPage }) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold">Green Marketplace</h1>
+            <h1 className="text-2xl font-bold" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>Green Marketplace</h1>
           </div>
-
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             <button onClick={() => setCurrentPage('home')} className="hover:text-green-200 transition">
@@ -70,7 +73,6 @@ const Header = ({ setCurrentPage }) => {
               </>
             )}
           </nav>
-
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
             <button className="p-2 hover:text-green-200" onClick={handleMobileMenuToggle}>
@@ -79,7 +81,6 @@ const Header = ({ setCurrentPage }) => {
               </svg>
             </button>
           </div>
-
           {/* Login/Logout Button */}
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
@@ -101,7 +102,6 @@ const Header = ({ setCurrentPage }) => {
             </button>
           </div>
         </div>
-
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <nav className="md:hidden mt-4 space-y-4">

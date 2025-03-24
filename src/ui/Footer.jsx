@@ -1,10 +1,16 @@
-// src/components/Footer.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+  const navigate = useNavigate();
+  
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
   return (
-    <footer className="bg-green-800 text-white">
-      <div className="container mx-auto px-4 py-8">
+    <footer className="bg-green-800 text-white py-10">
+      <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-lg font-semibold mb-4">Green Marketplace</h3>
@@ -16,20 +22,21 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="/" className="text-green-200 hover:text-white transition">Home</a></li>
-              <li><a href="/products" className="text-green-200 hover:text-white transition">Products</a></li>
-              <li><a href="/about" className="text-green-200 hover:text-white transition">About Us</a></li>
-              <li><a href="/contact" className="text-green-200 hover:text-white transition">Contact</a></li>
+              <li><a onClick={() => handleNavigation('/')} className="text-green-200 hover:text-white transition cursor-pointer">Home</a></li>
+              <li><a onClick={() => handleNavigation('/products')} className="text-green-200 hover:text-white transition cursor-pointer">Products</a></li>
+              <li><a onClick={() => handleNavigation('/about')} className="text-green-200 hover:text-white transition cursor-pointer">About Us</a></li>
+              <li><a onClick={() => handleNavigation('/contact')} className="text-green-200 hover:text-white transition cursor-pointer">Contact</a></li>
             </ul>
           </div>
           
           <div>
             <h3 className="text-lg font-semibold mb-4">Categories</h3>
             <ul className="space-y-2">
-              <li><a href="/products/eco-home" className="text-green-200 hover:text-white transition">Eco Home</a></li>
-              <li><a href="/products/sustainable-fashion" className="text-green-200 hover:text-white transition">Sustainable Fashion</a></li>
-              <li><a href="/products/zero-waste" className="text-green-200 hover:text-white transition">Zero Waste</a></li>
-              <li><a href="/products/organic-food" className="text-green-200 hover:text-white transition">Organic Food</a></li>
+              <li><a onClick={() => handleNavigation('/products/eco-home')} className="text-green-200 hover:text-white transition cursor-pointer">Eco Home</a></li>
+              <li><a onClick={() => handleNavigation('/products/sustainable-fashion')} className="text-green-200 hover:text-white transition cursor-pointer">Sustainable Fashion</a></li>
+              <li><a onClick={() => handleNavigation('/products/zero-waste')} className="text-green-200 hover:text-white transition cursor-pointer">Zero Waste</a></li>
+              <li><a onClick={() => handleNavigation('/products/organic-food')} className="text-green-200 hover:text-white transition cursor-pointer">Organic Food</a></li>
+              <li><a onClick={() => handleNavigation('/ai-validation')} className="text-green-200 hover:text-white transition cursor-pointer bg-green-700 px-2 py-1 rounded-md">AI Product Validation</a></li>
             </ul>
           </div>
           

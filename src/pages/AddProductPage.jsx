@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { db, storage, collection, addDoc } from '../../firebase-config';
+import { db, storage } from '../firebase-config';
+import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const AddProductPage = ({ setCurrentPage }) => {

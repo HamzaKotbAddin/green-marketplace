@@ -1,7 +1,7 @@
 // src/pages/ContactPage.jsx
 import React, { useState } from 'react';
-import { db } from '../../firebase-config';
-import { collection, addDoc } from '../../firebase-config';
+import { db } from '../firebase-config';
+import { collection, addDoc } from 'firebase/firestore';
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as mobilenet from "@tensorflow-models/mobilenet";
-import { ecoProductDictionary, specificProducts, visualIndicators } from "../../ecoProductData";
+import { ecoProductDictionary, specificProducts, visualIndicators } from "../ecoProductData";
 
 const Certification = () => {
   const [image, setImage] = useState(null);

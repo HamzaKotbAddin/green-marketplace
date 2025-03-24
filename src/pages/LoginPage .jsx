@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, auth } from '../../firebase-config';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, auth } from '../firebase-config';
 
 const LoginPage = ({ setCurrentPage }) => {
   const [email, setEmail] = useState('');
