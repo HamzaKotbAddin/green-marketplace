@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { auth, signOut } from '../firebase-config';
 
-const Header = () => {
+const Header = ({ setCurrentPage, user, setUser }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
         setIsLoggedIn(true);
-        const name = user.email.split('@')[0];
+        const name = authUser.email.split('@')[0];
         setUserName(name);
       } else {
         setIsLoggedIn(false);
@@ -26,77 +24,73 @@ const Header = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
 
-  // Handle navigation
-  const setCurrentPage = (page) => {
-    navigate(`/${page === 'home' ? '' : page}`);
-  };
-
   // Handle logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Redirect to home after logout
+      setUser(null);
+      setCurrentPage('home'); // Redirect to home after logout
     } catch (error) {
       console.error("Logout failed", error);
     }
   }
 
   return (
-    <header className="bg-green-600 text-white shadow-md">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>Green Marketplace</h1>
+    <header className="header-main">
+      <div className="container header-container">
+        <div className="header-wrapper">
+          <div className="logo-container">
+            <h1 className="site-title" onClick={() => setCurrentPage('home')} style={{cursor: 'pointer'}}>Green Marketplace</h1>
           </div>
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <button onClick={() => setCurrentPage('home')} className="hover:text-green-200 transition">
+          <nav className="desktop-nav">
+            <button onClick={() => setCurrentPage('home')} className="nav-link">
               Home
             </button>
-            <button onClick={() => setCurrentPage('products')} className="hover:text-green-200 transition">
+            <button onClick={() => setCurrentPage('products')} className="nav-link">
               Products
             </button>
-            <button onClick={() => setCurrentPage('about')} className="hover:text-green-200 transition">
+            <button onClick={() => setCurrentPage('about')} className="nav-link">
               About
             </button>
-            <button onClick={() => setCurrentPage('contact')} className="hover:text-green-200 transition">
+            <button onClick={() => setCurrentPage('contact')} className="nav-link">
               Contact
             </button>
             {isLoggedIn && (
               <>
-                <button onClick={() => setCurrentPage('add-product')} className="hover:text-green-200 transition">
+                <button onClick={() => setCurrentPage('add-product')} className="nav-link">
                   Add Product
                 </button>
-                <button onClick={() => setCurrentPage('manage-products')} className="hover:text-green-200 transition">
+                <button onClick={() => setCurrentPage('manage-products')} className="nav-link">
                   Manage Products
                 </button>
               </>
             )}
           </nav>
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center space-x-4">
-            <button className="p-2 hover:text-green-200" onClick={handleMobileMenuToggle}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mobile-menu-button">
+            <button className="menu-toggle" onClick={handleMobileMenuToggle}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
           {/* Login/Logout Button */}
-          <div className="flex items-center space-x-4">
+          <div className="auth-container">
             {isLoggedIn ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-white">{userName}</span>
-                <button onClick={handleLogout} className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-md transition">
+              <div className="user-info">
+                <span className="username">{userName}</span>
+                <button onClick={handleLogout} className="logout-button">
                   Logout
                 </button>
               </div>
             ) : (
-              <button onClick={() => setCurrentPage('login')} className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition">
+              <button onClick={() => setCurrentPage('login')} className="login-button">
                 Login
               </button>
             )}
-            <button onClick={() => setCurrentPage('cart')} className="p-2 hover:text-green-200">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button onClick={() => setCurrentPage('cart')} className="cart-button">
+              <svg xmlns="http://www.w3.org/2000/svg" className="cart-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </button>
@@ -104,25 +98,25 @@ const Header = () => {
         </div>
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <nav className="md:hidden mt-4 space-y-4">
-            <button onClick={() => setCurrentPage('home')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+          <nav className="mobile-nav">
+            <button onClick={() => setCurrentPage('home')} className="mobile-nav-link">
               Home
             </button>
-            <button onClick={() => setCurrentPage('products')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+            <button onClick={() => setCurrentPage('products')} className="mobile-nav-link">
               Products
             </button>
-            <button onClick={() => setCurrentPage('about')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+            <button onClick={() => setCurrentPage('about')} className="mobile-nav-link">
               About
             </button>
-            <button onClick={() => setCurrentPage('contact')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+            <button onClick={() => setCurrentPage('contact')} className="mobile-nav-link">
               Contact
             </button>
             {isLoggedIn && (
               <>
-                <button onClick={() => setCurrentPage('add-product')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+                <button onClick={() => setCurrentPage('add-product')} className="mobile-nav-link">
                   Add Product
                 </button>
-                <button onClick={() => setCurrentPage('manage-products')} className="block w-full text-left py-2 px-4 hover:text-green-200">
+                <button onClick={() => setCurrentPage('manage-products')} className="mobile-nav-link">
                   Manage Products
                 </button>
               </>
