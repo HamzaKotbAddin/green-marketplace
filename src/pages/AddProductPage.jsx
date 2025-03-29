@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db, storage } from '../firebase-config';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import './add-product-page.css';
 
 const AddProductPage = ({ setCurrentPage }) => {
   const [title, setTitle] = useState('');
@@ -95,25 +96,25 @@ const AddProductPage = ({ setCurrentPage }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-green-800 mb-6">Add New Product</h1>
-      <p className="mb-6">Add a new sustainable and eco-friendly product to the marketplace.</p>
+    <div className="product-container">
+      <h1 className="product-title">Add New Product</h1>
+      <p className="product-description">Add a new sustainable and eco-friendly product to the marketplace.</p>
 
       {message.text && (
         <div 
-          className={`p-4 mb-6 rounded-md ${
-            message.type === 'error' ? 'bg-red-100 text-red-700' : 
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 
-            'bg-blue-100 text-blue-700'
+          className={`message-container ${
+            message.type === 'error' ? 'message-error' : 
+            message.type === 'success' ? 'message-success' : 
+            'message-info'
           }`}
         >
           {message.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
+      <form onSubmit={handleSubmit} className="product-form">
+        <div className="form-group">
+          <label htmlFor="title" className="form-label">
             Product Title
           </label>
           <input
@@ -121,28 +122,28 @@ const AddProductPage = ({ setCurrentPage }) => {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="form-input"
             placeholder="Enter product title"
           />
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
+        <div className="form-group">
+          <label htmlFor="description" className="form-label">
             Product Description
           </label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="form-input"
             placeholder="Enter product description"
             rows="4"
           ></textarea>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="form-grid">
           <div>
-            <label htmlFor="price" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="price" className="form-label">
               Price ($)
             </label>
             <input
@@ -150,7 +151,7 @@ const AddProductPage = ({ setCurrentPage }) => {
               id="price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="form-input"
               placeholder="0.00"
               step="0.01"
               min="0"
@@ -158,14 +159,14 @@ const AddProductPage = ({ setCurrentPage }) => {
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="category" className="form-label">
               Category
             </label>
             <select
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="form-input"
             >
               <option value="">Select a category</option>
               {categories.map((cat) => (
@@ -177,54 +178,50 @@ const AddProductPage = ({ setCurrentPage }) => {
           </div>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="image" className="block text-gray-700 font-medium mb-2">
+        <div className="form-group">
+          <label htmlFor="image" className="form-label">
             Product Image
           </label>
           <input
             type="file"
             id="image"
             onChange={handleImageChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="form-input"
             accept="image/*"
           />
           {imagePreview && (
-            <div className="mt-2">
+            <div className="image-preview">
               <img 
                 src={imagePreview} 
                 alt="Preview" 
-                className="h-48 object-cover rounded-md border border-gray-300" 
+                className="preview-image" 
               />
             </div>
           )}
         </div>
 
-        <div className="mb-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={isEco}
-              onChange={(e) => setIsEco(e.target.checked)}
-              className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-            />
-            <span className="ml-2 text-gray-700">This is an eco-friendly product</span>
-          </label>
+        <div className="checkbox-container">
+          <input
+            type="checkbox"
+            checked={isEco}
+            onChange={(e) => setIsEco(e.target.checked)}
+            className="checkbox-input"
+          />
+          <span className="checkbox-label">This is an eco-friendly product</span>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="button-container">
           <button
             type="submit"
             disabled={isLoading}
-            className={`bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`submit-button ${isLoading ? 'submit-button-disabled' : ''}`}
           >
             {isLoading ? 'Adding Product...' : 'Add Product'}
           </button>
           <button
             type="button"
             onClick={() => setCurrentPage('manage-products')}
-            className="bg-gray-200 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-300 transition"
+            className="secondary-button"
           >
             Manage Products
           </button>
@@ -233,7 +230,7 @@ const AddProductPage = ({ setCurrentPage }) => {
 
       <button
         onClick={() => setCurrentPage('home')}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mt-6"
+        className="back-button"
       >
         Back to Home
       </button>

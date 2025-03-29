@@ -1,0 +1,331 @@
+/* HomePage styles */
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9fafb;
+  overflow: hidden;
+}
+
+/* Hero Section */
+.hero-section {
+  background-color: #166534;
+  color: white;
+  text-align: center;
+  padding: 4rem 1rem;
+  position: relative;
+}
+
+.hero-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.leaf-1 {
+  position: absolute;
+  top: 2.5rem;
+  left: 5rem;
+  font-size: 1.875rem;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.leaf-2 {
+  position: absolute;
+  top: 8rem;
+  right: 10rem;
+  font-size: 1.875rem;
+  opacity: 0.3;
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.leaf-3 {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 25%;
+  font-size: 1.875rem;
+  opacity: 0.3;
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+.hero-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  animation: fadeIn 1.5s ease-out;
+}
+
+.hero-description {
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+  animation: slideUp 1s ease-out 0.5s both;
+}
+
+.hero-button {
+  background-color: #16a34a;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s;
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+.hero-button:hover {
+  background-color: #15803d;
+  transform: scale(1.05);
+}
+
+/* About Section */
+.about-section {
+  padding: 4rem 1rem;
+  text-align: center;
+  background-color: white;
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+}
+
+.about-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.about-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 1rem;
+}
+
+.about-description {
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 2rem;
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.about-button {
+  background-color: #16a34a;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s;
+}
+
+.about-button:hover {
+  background-color: #15803d;
+  transform: scale(1.05);
+}
+
+/* Features Section */
+.features-section {
+  padding: 4rem 1rem;
+  background-color: #f3f4f6;
+}
+
+.features-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #166534;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+}
+
+.features-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+.feature-card {
+  text-align: center;
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform-origin: center;
+}
+
+.feature-card:hover {
+  transform: scale(1.05);
+}
+
+.feature-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card.delay-100 {
+  transition-delay: 0.1s;
+}
+
+.feature-card.delay-200 {
+  transition-delay: 0.2s;
+}
+
+.feature-card.delay-300 {
+  transition-delay: 0.3s;
+}
+
+.feature-icon-container {
+  display: inline-block;
+  padding: 1rem;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  margin-bottom: 1rem;
+}
+
+.feature-icon {
+  font-size: 2.25rem;
+  color: #16a34a;
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 0.5rem;
+}
+
+.feature-description {
+  color: #374151;
+}
+
+/* Certification Section */
+.certification-wrapper {
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+}
+
+.certification-wrapper.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Call to Action Section */
+.cta-section {
+  padding: 3rem 1rem;
+  background: linear-gradient(to right, #16a34a, #15803d);
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-background {
+  position: absolute;
+  inset: 0;
+  background-color: #22c55e;
+  animation: pulse-slow 4s ease-in-out infinite;
+  opacity: 0.2;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 10;
+}
+
+.cta-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+}
+
+.cta-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cta-description {
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(2.5rem);
+  transition: all 0.7s;
+  transition-delay: 0.1s;
+}
+
+.cta-description.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cta-button {
+  background-color: #166534;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s;
+}
+
+.cta-button:hover {
+  background-color: #14532d;
+  transform: scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(5deg); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(20px); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Media Queries */
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

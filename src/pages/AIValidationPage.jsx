@@ -3,6 +3,7 @@ import * as tf from "@tensorflow/tfjs";
 import * as mobilenet from "@tensorflow-models/mobilenet";
 import { ecoProductDictionary, specificProducts, visualIndicators } from "../ecoProductData";
 import { aiValidationAPI } from "../services/api";
+import './ai-validation-page.css';
 
 const AIValidationPage = () => {
   const [image, setImage] = useState(null);
@@ -275,7 +276,7 @@ const AIValidationPage = () => {
       if (productData.materials && productData.materials.length > 0) {
         const sustainableMaterials = productData.materials.filter(material => 
           ecoProductDictionary.materials.sustainable_materials.some(m => material.toLowerCase().includes(m)) ||
-          ecoProductDictionary.materials.plastic_alternatives.some(m => material.toLowerCase().includes(m))
+          ecoProductDictionary.materials.biodegradable_materials.some(m => material.toLowerCase().includes(m))
         );
         
         if (sustainableMaterials.length > 0) {
@@ -295,50 +296,46 @@ const AIValidationPage = () => {
         }
       }
       
-      // Determine final score and confidence level
-      ecoScore = Math.max(0, Math.min(5, ecoScore * 2)); // Scale to 0-5
+      // Normalize score to 0-5 range
+      ecoScore = Math.min(5, Math.max(0, ecoScore));
       
-      if (ecoScore >= 3.5) {
-        confidenceLevel = "Highly Likely Eco-Friendly";
-        ecoFriendly = true;
-      } else if (ecoScore >= 2.5) {
-        confidenceLevel = "Likely Eco-Friendly";
-        ecoFriendly = true;
-      } else if (ecoScore >= 1.5) {
-        confidenceLevel = "Possibly Eco-Friendly";
-        ecoFriendly = false;
+      // Determine confidence level
+      if (predictions[0].probability > DOMINANT_PREDICTION_THRESHOLD) {
+        confidenceLevel = "High";
+      } else if (predictions[0].probability > 0.2) {
+        confidenceLevel = "Medium";
       } else {
-        confidenceLevel = "Unlikely to be Eco-Friendly";
-        ecoFriendly = false;
+        confidenceLevel = "Low";
       }
       
-      // Get additional recommendations from API
+      // Determine if eco-friendly
+      ecoFriendly = ecoScore >= 3.0;
+      
+      // Set result
+      setResult({
+        score: ecoScore.toFixed(1),
+        confidenceLevel,
+        ecoFriendly,
+        detectionSummary,
+        matchedFeatures
+      });
+      
+      // Call external API for additional validation
       try {
-        const apiResult = await aiValidationAPI.validateProduct(image, {
-          ...productData,
-          ecoScore
+        const apiResult = await aiValidationAPI.validateProduct({
+          image_url: image,
+          product_name: productData.name,
+          product_description: productData.description,
+          materials: productData.materials,
+          certifications: productData.certifications
         });
         
-        // Merge recommendations
-        if (apiResult.recommendations && apiResult.recommendations.length > 0) {
-          apiResult.recommendations.forEach(rec => {
-            if (!detectionSummary.includes(rec)) {
-              detectionSummary.push(rec);
-            }
-          });
-        }
+        console.log("API validation result:", apiResult);
+        // Could merge API results with local results if needed
       } catch (error) {
-        console.error("Error getting API recommendations:", error);
+        console.error("API validation error:", error);
+        // Continue with local results only
       }
-      
-      // Set the result
-      setResult({
-        ecoFriendly,
-        confidenceLevel,
-        score: ecoScore.toFixed(1),
-        detectionSummary,
-        matchedFeatures: matchedFeatures.join(', ')
-      });
       
       setIsLoading(false);
     } catch (error) {
@@ -348,255 +345,218 @@ const AIValidationPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-green-800 mb-2">AI Eco-Product Validation</h1>
-      <p className="text-gray-600 mb-6">
+    <div className="ai-container">
+      <h1 className="ai-title">AI Eco-Product Validation</h1>
+      <p className="ai-description">
         Upload a product image and provide details to verify if it meets eco-friendly standards.
         Our AI will analyze the image and information to determine sustainability metrics.
       </p>
       
-      {/* Model loading indicator */}
       {modelLoading && (
-        <div className="bg-blue-50 text-blue-700 p-4 rounded-lg mb-6">
-          <p className="flex items-center">
-            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <div className="loading-message">
+          <p className="loading-text">
+            <svg className="loading-icon" viewBox="0 0 24 24">
+              <circle className="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+              <path className="spinner-path" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             Loading AI model... This may take a moment.
           </p>
         </div>
       )}
       
-      {/* Product Information Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">Product Information</h2>
+      <div className="product-info-section">
+        <h2 className="section-title">Product Information</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="form-grid">
           <div>
-            <label className="block text-gray-700 mb-2">Product Name</label>
+            <label className="form-label">Product Name</label>
             <input
               type="text"
               name="name"
               value={productData.name}
               onChange={handleInputChange}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-              placeholder="e.g., Bamboo Toothbrush"
+              className="form-input"
+              placeholder="Enter product name"
             />
           </div>
-          
           <div>
-            <label className="block text-gray-700 mb-2">Materials (comma separated)</label>
+            <label className="form-label">Materials (comma separated)</label>
             <input
               type="text"
               name="materials"
               value={productData.materials.join(', ')}
               onChange={handleArrayInputChange}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-              placeholder="e.g., bamboo, recycled plastic"
+              className="form-input"
+              placeholder="e.g. bamboo, recycled plastic"
             />
           </div>
         </div>
         
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Product Description</label>
+        <div className="form-group">
+          <label className="form-label">Product Description</label>
           <textarea
             name="description"
             value={productData.description}
             onChange={handleInputChange}
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full h-24"
-            placeholder="Describe the product and its eco-friendly features..."
+            className="form-textarea"
+            placeholder="Enter product description"
           ></textarea>
         </div>
         
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Certifications (comma separated)</label>
+        <div className="form-group">
+          <label className="form-label">Certifications (comma separated)</label>
           <input
             type="text"
             name="certifications"
             value={productData.certifications.join(', ')}
             onChange={handleArrayInputChange}
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-            placeholder="e.g., Organic, Fair Trade, B Corp"
+            className="form-input"
+            placeholder="e.g. FSC, GOTS, Fair Trade"
           />
         </div>
       </div>
       
-      {/* Image Upload Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">Product Image</h2>
-        <p className="text-gray-600 mb-4">
-          Upload a clear image of the product. The AI works best with well-lit photos that clearly show the product.
+      <div className="product-info-section">
+        <h2 className="section-title">Product Image</h2>
+        <p className="ai-description">
+          Upload a clear image of the product. The AI works best with well-lit, focused images
+          that clearly show the product's materials and features.
         </p>
         
         <input
           type="file"
           accept="image/*"
           onChange={handleImageChange}
-          className="border border-gray-300 rounded-lg px-4 py-3 w-full bg-gray-50"
+          className="form-input"
         />
-        {imageError && <p className="text-red-600 mt-2">{imageError}</p>}
+        {imageError && <p className="error-message">{imageError}</p>}
         
         {image && (
-          <div className="mt-4">
-            <img 
-              ref={imageRef} 
-              src={image} 
-              alt="Preview" 
-              className="w-64 h-auto rounded-lg mx-auto"
+          <div className="image-preview">
+            <img
+              ref={imageRef}
+              src={image}
+              alt="Product preview"
+              className="preview-image"
               crossOrigin="anonymous"
             />
           </div>
         )}
       </div>
       
-      {/* Analysis Button */}
-      <div className="text-center mb-6">
+      <div className="text-center">
         <button
-          className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition duration-300"
           onClick={analyzeImage}
-          disabled={isLoading || !image || modelLoading}
+          disabled={!image || !model || isLoading || modelLoading}
+          className={`analyze-button ${(!image || !model || isLoading || modelLoading) ? 'analyze-button-disabled' : ''}`}
         >
-          {isLoading ? "Analyzing..." : modelLoading ? "Loading AI Model..." : "Analyze Product"}
+          {isLoading ? "Analyzing..." : "Analyze Product"}
         </button>
       </div>
       
-      {/* Results Section */}
-      {isLoading ? (
-        <div className="text-center mt-6">
-          <div className="animate-pulse flex space-x-4 justify-center">
-            <div className="rounded-full bg-gray-200 h-10 w-10"></div>
-            <div className="flex-1 space-y-4 max-w-md">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+      {isLoading && (
+        <div className="loading-section">
+          <div className="loading-animation">
+            <div className="loading-circle"></div>
+            <div className="loading-content">
+              <div className="loading-bar"></div>
+              <div className="loading-bar-short"></div>
             </div>
           </div>
         </div>
-      ) : (
-        result && (
-          <div className="mt-6 p-6 border border-gray-100 rounded-lg bg-gray-50 shadow-md">
-            <h3 className="text-2xl font-semibold text-green-700 text-center">Eco-Product Analysis Results</h3>
-            
-            {/* Results header with icon */}
-            <div className="flex items-center justify-center mt-4">
-              <span className="text-4xl mr-3">
-                {result.ecoFriendly ? "✅" : result.score > 1.5 ? "❓" : "❌"}
-              </span>
-              <span className="text-xl font-medium">
-                {result.confidenceLevel}
-              </span>
-            </div>
-            
-            {/* Star rating */}
-            <div className="flex items-center justify-center mt-4">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <svg 
-                    key={star} 
-                    className={`w-8 h-8 ${parseFloat(result.score) >= star ? "text-green-500" : "text-gray-300"}`}
-                    fill="currentColor" 
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-                <span className="ml-2 text-xl font-medium">{result.score}/5</span>
-              </div>
-            </div>
-            
-            {/* Detection summary */}
-            {result.detectionSummary && result.detectionSummary.length > 0 && (
-              <div className="mt-6 p-4 bg-green-50 rounded-md border border-green-100">
-                <p className="text-md font-medium text-green-800 mb-3">Analysis results:</p>
-                {result.detectionSummary.map((item, index) => (
-                  <p key={index} 
-                     className={`text-md mb-2 ${item.includes("Warning") ? "text-red-700" : "text-green-700"}`}>
-                    • {item}
-                  </p>
-                ))}
-              </div>
-            )}
-            
-            {/* Recognized terms */}
-            {result.matchedFeatures && (
-              <div className="mt-5 p-4 bg-blue-50 rounded-md border border-blue-100">
-                <p className="text-md font-medium text-blue-800 mb-2">Recognized eco-elements:</p>
-                <div className="flex flex-wrap gap-2">
-                  {result.matchedFeatures.split(', ').map((feature, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500 italic">
-                Note: This analysis uses AI to detect potential eco-friendly characteristics but 
-                should not replace verification from official certifications.
-              </p>
-            </div>
-          </div>
-        )
       )}
       
-      {/* Show all predictions for debugging */}
+      {result && (
+        <div className="results-section">
+          <h3 className="result-title">Eco-Product Analysis Results</h3>
+          
+          <div className="eco-score-container">
+            <span className={`eco-score ${parseFloat(result.score) >= 4 ? 'eco-score-high' : parseFloat(result.score) >= 2.5 ? 'eco-score-medium' : 'eco-score-low'}`}>
+              {result.score}
+            </span>
+            <span className="confidence-level">
+              Eco-Score (Confidence: {result.confidenceLevel})
+            </span>
+          </div>
+          
+          <div className="star-rating-container">
+            <div className="star-rating">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                  key={star}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className={`star-icon ${parseFloat(result.score) >= star ? "eco-score-high" : "eco-score-low"}`}
+                >
+                  <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                </svg>
+              ))}
+              <span className="score-text">{result.score}/5</span>
+            </div>
+          </div>
+          
+          {result.detectionSummary.length > 0 && (
+            <div className="summary-container">
+              <p className="summary-title">Analysis results:</p>
+              <ul className="summary-list">
+                {result.detectionSummary.map((item, index) => (
+                  <li key={index} 
+                     className={`summary-item ${item.includes("Warning") ? "summary-warning" : "summary-success"}`}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {result.matchedFeatures.length > 0 && (
+            <div className="features-container">
+              <p className="features-title">Recognized eco-elements:</p>
+              <div className="features-list">
+                {result.matchedFeatures.map((feature, index) => (
+                  <span key={index} className="feature-tag">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="conclusion-container">
+            <p className="conclusion-text">
+              {result.ecoFriendly 
+                ? "This product appears to meet eco-friendly standards based on our analysis."
+                : "This product may not meet all eco-friendly standards based on our analysis."}
+            </p>
+          </div>
+        </div>
+      )}
+      
       {allPredictions.length > 0 && (
-        <div className="mt-8 p-4 text-sm text-gray-500 border-t pt-4 bg-white rounded-lg shadow-md">
-          <p className="font-medium text-gray-700">All detected elements:</p>
-          <ul className="mt-2 space-y-1">
-            {allPredictions.map((pred, index) => (
-              <li key={index} className={index === 0 ? "font-medium" : ""}>
-                {pred.className}: {(pred.probability * 100).toFixed(1)}%
-                {index === 0 && pred.probability > DOMINANT_PREDICTION_THRESHOLD && 
-                  " (dominant prediction)"}
+        <div className="predictions-section">
+          <p className="predictions-title">All detected elements:</p>
+          <ul className="predictions-list">
+            {allPredictions.map((prediction, index) => (
+              <li key={index} className={index === 0 ? "prediction-item-primary" : "prediction-item"}>
+                <span className="prediction-name">{prediction.className}</span>
+                <span className="prediction-probability">
+                  {(prediction.probability * 100).toFixed(1)}%
+                </span>
               </li>
             ))}
           </ul>
         </div>
       )}
       
-      {/* How It Works Section */}
-      <div className="mt-10 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-green-700 mb-4">How Our AI Validation Works</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 border border-green-100 rounded-lg">
-            <div className="text-green-600 text-2xl mb-2">1</div>
-            <h3 className="font-medium text-lg mb-2">Image Analysis</h3>
-            <p className="text-gray-600">
-              Our AI uses computer vision to identify materials, packaging, and visual indicators
-              of eco-friendly products.
-            </p>
-          </div>
-          
-          <div className="p-4 border border-green-100 rounded-lg">
-            <div className="text-green-600 text-2xl mb-2">2</div>
-            <h3 className="font-medium text-lg mb-2">Data Verification</h3>
-            <p className="text-gray-600">
-              We cross-reference product information with our database of sustainable materials
-              and eco-certifications.
-            </p>
-          </div>
-          
-          <div className="p-4 border border-green-100 rounded-lg">
-            <div className="text-green-600 text-2xl mb-2">3</div>
-            <h3 className="font-medium text-lg mb-2">Eco-Score Calculation</h3>
-            <p className="text-gray-600">
-              A comprehensive score is generated based on multiple sustainability factors
-              and confidence levels.
-            </p>
-          </div>
-        </div>
-        
-        <div className="mt-6">
-          <p className="text-gray-600">
-            Our AI validation tool helps consumers make informed choices and assists sellers in
-            verifying their products' eco-friendly claims. While our system is continuously improving,
-            we recommend using it alongside official certifications for the most accurate assessment.
-          </p>
-        </div>
+      <div className="disclaimer-section">
+        <h3 className="disclaimer-title">About AI Validation</h3>
+        <p className="disclaimer-text">
+          This tool uses machine learning to analyze product images and information to estimate eco-friendliness.
+          While our AI model is trained on thousands of sustainable products, results should be considered as
+          guidance rather than definitive certification. For official eco-certification, please consult
+          recognized certification bodies.
+        </p>
       </div>
     </div>
   );

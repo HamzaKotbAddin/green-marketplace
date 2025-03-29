@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { db } from '../firebase-config';
 import { collection, addDoc } from 'firebase/firestore';
+import './contact-page.css';
+
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -41,48 +43,48 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 py-12 px-6 md:px-12">
-      <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-4xl font-extrabold text-green-800 mb-6">Contact Us</h1>
-        <p className="text-lg text-gray-700 mb-8">Feel free to reach out to us with any inquiries. We’d love to hear from you!</p>
+    <div className="contact-container">
+      <div className="contact-content">
+        <h1 className="contact-title">Contact Us</h1>
+        <p className="contact-description">Feel free to reach out to us with any inquiries. We'd love to hear from you!</p>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="name" className="text-left text-gray-700">Your Name</label>
+        <form onSubmit={handleSubmit} className="contact-form">
+          <div className="form-group">
+            <label htmlFor="name" className="form-label">Your Name</label>
             <input
               id="name"
               name="name"
               type="text"
               value={formData.name}
               onChange={handleInputChange}
-              className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="form-input"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="email" className="text-left text-gray-700">Your Email</label>
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">Your Email</label>
             <input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="form-input"
               required
             />
           </div>
 
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="message" className="text-left text-gray-700">Your Message</label>
+          <div className="form-group">
+            <label htmlFor="message" className="form-label">Your Message</label>
             <textarea
               id="message"
               name="message"
               value={formData.message}
               onChange={handleInputChange}
               rows="5"
-              className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="form-textarea"
               required
             />
           </div>
@@ -91,9 +93,7 @@ const ContactPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-md transition ${
-              isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
-            }`}
+            className={`submit-button ${isSubmitting ? 'submit-button-disabled' : ''}`}
           >
             {isSubmitting ? 'Submitting...' : 'Send Message'}
           </button>
@@ -101,10 +101,10 @@ const ContactPage = () => {
 
         {/* Success/Failure Message */}
         {submitSuccess && (
-          <div className="mt-6 text-green-700 font-semibold">Your message has been sent successfully!</div>
+          <div className="success-message">Your message has been sent successfully!</div>
         )}
         {submitError && (
-          <div className="mt-6 text-red-600 font-semibold">{submitError}</div>
+          <div className="error-message">{submitError}</div>
         )}
       </div>
     </div>
