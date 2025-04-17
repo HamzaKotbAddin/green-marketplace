@@ -1,0 +1,224 @@
+/* AIValidationPage styles */
+.ai-container {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.ai-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 0.5rem;
+}
+
+.ai-description {
+  color: #4b5563;
+  margin-bottom: 1.5rem;
+}
+
+.loading-message {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.loading-icon {
+  animation: spin 1s linear infinite;
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.75rem;
+}
+
+.loading-text {
+  display: flex;
+  align-items: center;
+}
+
+.spinner-circle {
+  opacity: 0.25;
+}
+
+.spinner-path {
+  opacity: 0.75;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.product-info-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+}
+
+.form-textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  height: 6rem;
+}
+
+.image-upload-section {
+  margin-bottom: 1.5rem;
+}
+
+.image-preview {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+}
+
+.error-message {
+  color: #b91c1c;
+  margin-top: 0.5rem;
+}
+
+.analyze-button {
+  background-color: #16a34a;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.analyze-button:hover {
+  background-color: #15803d;
+}
+
+.analyze-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.results-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.result-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 1rem;
+}
+
+.eco-score {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.eco-score-high {
+  color: #16a34a;
+}
+
+.eco-score-medium {
+  color: #ca8a04;
+}
+
+.eco-score-low {
+  color: #b91c1c;
+}
+
+.confidence-level {
+  margin-bottom: 1rem;
+}
+
+.summary-list {
+  margin-bottom: 1rem;
+}
+
+.summary-item {
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.summary-item::before {
+  content: "•";
+  position: absolute;
+  left: 0.5rem;
+}
+
+.predictions-section {
+  margin-top: 1.5rem;
+}
+
+.predictions-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.prediction-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.prediction-name {
+  color: #374151;
+}
+
+.prediction-probability {
+  color: #6b7280;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

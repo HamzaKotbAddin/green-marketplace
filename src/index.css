@@ -1,0 +1,81 @@
+/* Base styles */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: #213547;
+  background-color: #ffffff;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Typography */
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* Buttons */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  background-color: #f9f9f9;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Layout classes to replace Tailwind */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+/* Links */
+a:hover {
+  color: #747bff;
+}
+
+/* Media queries */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #ffffffde;
+    background-color: #242424;
+  }
+  button {
+    background-color: #1a1a1a;
+  }
+}
+
+/* Add any additional custom styles from the original project here */
