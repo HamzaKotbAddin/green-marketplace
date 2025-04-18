@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { productAPI } from "../services/api";
 
 const ProductsPage = ({ setCurrentPage, addToCart }) => {
   const [products, setProducts] = useState([]);
@@ -16,8 +15,24 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const productsData = await productAPI.getAllProducts();
-        setProducts(productsData);
+        const response = await fetch("https://fakestoreapi.com/products");
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+
+        // Simulate some extra eco-related data
+        const enrichedData = data.map((product) => ({
+          ...product,
+          material: ["recycled", "organic", "biodegradable"][
+            Math.floor(Math.random() * 3)
+          ],
+          category: product.category.replace("'", "").toLowerCase(),
+          certifications: ["Fair Trade", "USDA Organic", "B Corp"].filter(
+            () => Math.random() > 0.5
+          ),
+          ecoScore: Math.floor(Math.random() * 5) + 1,
+        }));
+
+        setProducts(enrichedData);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -60,7 +75,6 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
 
       {/* Filter Section */}
       <div className="flex flex-wrap gap-6 mb-6">
-        {/* Material Filter */}
         <select
           value={filters.material}
           onChange={(e) => setFilters({ ...filters, material: e.target.value })}
@@ -72,20 +86,18 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
           <option value="biodegradable">Biodegradable</option>
         </select>
 
-        {/* Category Filter */}
         <select
           value={filters.category}
           onChange={(e) => setFilters({ ...filters, category: e.target.value })}
           className="p-2 border rounded"
         >
           <option value="">Select Category</option>
-          <option value="organic-food">Organic Food</option>
-          <option value="zero-waste">Zero-Waste Household Goods</option>
-          <option value="sustainable-fashion">Sustainable Fashion</option>
-          <option value="eco-personal-care">Eco-Friendly Personal Care</option>
+          <option value="men's clothing">Men's Clothing</option>
+          <option value="women's clothing">Women's Clothing</option>
+          <option value="jewelery">Jewelery</option>
+          <option value="electronics">Electronics</option>
         </select>
 
-        {/* Certifications Filter */}
         <div>
           <span className="block text-sm font-medium">Certifications</span>
           <div className="flex gap-4">
@@ -115,7 +127,6 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
         {products.length > 0 ? (
           products
             .filter((product) => {
-              // Apply filters to the products
               const matchesMaterial = filters.material
                 ? product.material === filters.material
                 : true;
@@ -138,16 +149,13 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
                 <div
                   className="bg-gray-200 h-48 rounded-md mb-4"
                   style={{
-                    backgroundImage: `url(${
-                      product.image ||
-                      "https://via.placeholder.com/300x200?text=Eco+Product"
-                    })`,
+                    backgroundImage: `url(${product.image})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                   }}
                 ></div>
                 <h3 className="text-lg font-semibold text-green-700">
-                  {product.name || product.title}
+                  {product.title}
                 </h3>
                 <p className="text-gray-600 mb-2 line-clamp-2">
                   {product.description}
@@ -156,7 +164,6 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
                   ${product.price}
                 </p>
 
-                {/* Eco Score */}
                 {product.ecoScore && (
                   <div className="flex items-center mb-3">
                     <span className="text-sm text-gray-600 mr-2">
@@ -181,7 +188,6 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
                   </div>
                 )}
 
-                {/* Certifications */}
                 {product.certifications &&
                   product.certifications.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
@@ -213,7 +219,6 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
         )}
       </div>
 
-      {/* Go back button */}
       <button
         onClick={() => setCurrentPage("home")}
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mt-4"
