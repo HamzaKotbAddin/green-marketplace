@@ -1,198 +1,237 @@
-import { useState, useEffect } from 'react';
-import Header from './ui/Header';
-import Footer from './ui/Footer';
-import Container from './ui/Container';
-import HomePage from './pages/HomePage';
-import ProductsPage from './pages/ProductsPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import CartPage from './pages/CartPage';
-import PaymentPage from './pages/PaymentPage';
-import LoginPage from './pages/LoginPage .jsx';
-import { db } from '../firebase-config';
+import { useState, useEffect } from "react";
+import Header from "./ui/Header";
+import Footer from "./ui/Footer";
+import Container from "./ui/Container";
+import HomePage from "./pages/HomePage";
+import ProductsPage from "./pages/ProductsPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import CartPage from "./pages/CartPage";
+import PaymentPage from "./pages/PaymentPage";
+import AddProductPage from "./pages/AddProductPage";
+import ManageProductsPage from "./pages/ManageProductsPage";
+import LoginPage from "./pages/LoginPage.jsx";
+import Profile from "./pages/Profile.jsx";
+import { db } from "../firebase-config"; // Import Firestore
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  deleteDoc,
+} from "firebase/firestore"; // Firebase Firestore imports
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState("home");
   const [cart, setCart] = useState([]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [userName, setUserName] = useState("");
+
   // Create a unique anonymous ID for non-logged in users
   useEffect(() => {
-    const setupAnonymousUser = async () => {
-      if (!user) {
-        // Check if we already have an anonymous ID stored
-        const anonymousId = sessionStorage.getItem('anonymousUserId');
-        
-        if (anonymousId) {
-          // Use existing anonymous ID
-          setUser({ uid: anonymousId, isAnonymous: true });
-        } else {
-          try {
-            // Create a new document in the 'anonymous' collection
-            const newAnonymousRef = await db.collection('anonymous').add({
-              createdAt: new Date(),
-            });
-            
-            // Store the new ID in session storage
-            sessionStorage.setItem('anonymousUserId', newAnonymousRef.id);
-            setUser({ uid: newAnonymousRef.id, isAnonymous: true });
-          } catch (error) {
-            console.error('Error creating anonymous user:', error);
-          }
-        }
-      }
-      setIsLoading(false);
-    };
-    
-    setupAnonymousUser();
-  }, []);
-  
-  // Load user data (cart and current page) from Firebase
-  useEffect(() => {
+    const cartRef = { current: cart };
+    const currentPageRef = { current: currentPage };
+
     if (user && user.uid) {
-      // Set up listeners for real-time updates
-      const userDataRef = db.collection('userData').doc(user.uid);
-      
-      const unsubscribe = userDataRef.onSnapshot((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          
-          // Load cart
-          if (data.cart) {
-            setCart(data.cart);
+      const userDataRef = doc(db, "userData", user.uid);
+
+      const unsubscribe = onSnapshot(
+        userDataRef,
+        (doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+
+            if (data.cart) {
+              setCart(data.cart);
+            }
+
+            if (data.currentPage) {
+              setCurrentPage(data.currentPage);
+            }
+          } else {
+            console.log("Creating new user data document");
+            setDoc(userDataRef, {
+              cart: cartRef.current,
+              currentPage: currentPageRef.current,
+              isAnonymous: user.isAnonymous || false,
+            }).catch((error) => {
+              console.error("Error creating user data document:", error);
+            });
           }
-          
-          // Load current page
-          if (data.currentPage) {
-            setCurrentPage(data.currentPage);
-          }
-        } else {
-          // Document doesn't exist yet, save current data
-          userDataRef.set({
-            cart: cart,
-            currentPage: currentPage,
-            isAnonymous: user.isAnonymous || false
-          }).catch(error => {
-            console.error('Error creating user data document:', error);
-          });
+        },
+        (error) => {
+          console.error("Error in Firebase snapshot listener:", error);
         }
-      }, (error) => {
-        console.error('Error in Firebase snapshot listener:', error);
-      });
-      
-      // Clean up the listener when the component unmounts or user changes
-      return () => unsubscribe();
+      );
+
+      return () => {
+        if (typeof unsubscribe === "function") {
+          unsubscribe();
+        }
+      };
     }
   }, [user]);
-  
-  // Save data to Firebase when cart or page changes
+
+  useEffect(() => {
+    if (user && user.uid) {
+      const userDataRef = doc(db, "userData", user.uid);
+
+      const unsubscribe = onSnapshot(
+        userDataRef,
+        (doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+
+            if (data.cart) setCart(data.cart);
+            if (data.currentPage) setCurrentPage(data.currentPage);
+
+            setIsLoading(false);
+          } else {
+            setDoc(userDataRef, {
+              cart,
+              currentPage,
+              isAnonymous: user.isAnonymous || false,
+            })
+              .then(() => setIsLoading(false))
+              .catch((error) => {
+                console.error("Error creating user data document:", error);
+                setIsLoading(false);
+              });
+          }
+        },
+        (error) => {
+          console.error("Error in Firebase snapshot listener:", error);
+          setIsLoading(false);
+        }
+      );
+
+      return () => unsubscribe();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user && user.uid && !isLoading) {
-      const userDataRef = db.collection('userData').doc(user.uid);
-      
-      userDataRef.update({
+      const userDataRef = doc(db, "userData", user.uid);
+
+      updateDoc(userDataRef, {
         cart: cart,
         currentPage: currentPage,
-        lastUpdated: new Date()
-      }).catch(error => {
-        console.error('Error updating user data:', error);
+        lastUpdated: new Date(),
+      }).catch((error) => {
+        console.error("Error updating user data:", error);
       });
     }
   }, [cart, currentPage, user, isLoading]);
-  
-  // Handle user login and transfer anonymous data
+
   const handleLogin = async (userData) => {
     if (user && user.isAnonymous) {
-      // Transfer anonymous user data to the authenticated user
       try {
-        const anonymousDataRef = db.collection('userData').doc(user.uid);
-        const anonymousDataSnap = await anonymousDataRef.get();
-        
-        if (anonymousDataSnap.exists) {
+        const anonymousDataRef = doc(db, "userData", user.uid);
+        const anonymousDataSnap = await getDoc(anonymousDataRef);
+
+        if (anonymousDataSnap.exists()) {
           const anonymousData = anonymousDataSnap.data();
-          
-          // Set the authenticated user's data
-          await db.collection('userData').doc(userData.uid).set({
+
+          await setDoc(doc(db, "userData", userData.uid), {
             cart: anonymousData.cart || [],
-            currentPage: anonymousData.currentPage || 'home',
-            lastUpdated: new Date()
+            currentPage: anonymousData.currentPage || "home",
+            lastUpdated: new Date(),
           });
-          
-          // Optionally delete anonymous data
-          await anonymousDataRef.delete();
+
+          await deleteDoc(anonymousDataRef);
         }
-        
-        // Clear anonymous ID from session storage
-        sessionStorage.removeItem('anonymousUserId');
+
+        sessionStorage.removeItem("anonymousUserId");
       } catch (error) {
-        console.error('Error transferring anonymous data:', error);
+        console.error("Error transferring anonymous data:", error);
       }
     }
-    
-    // Set the authenticated user
+
     setUser(userData);
   };
-  
-  // Add to cart function
+
   const addToCart = (product) => {
     setCart((prevCart) => {
-      // Check if product already exists in cart
-      const existingItemIndex = prevCart.findIndex(item => item.id === product.id);
-      
+      const existingItemIndex = prevCart.findIndex(
+        (item) => item.id === product.id
+      );
+
       if (existingItemIndex >= 0) {
-        // If product exists, update quantity
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex] = {
           ...updatedCart[existingItemIndex],
-          quantity: (updatedCart[existingItemIndex].quantity || 1) + 1
+          quantity: (updatedCart[existingItemIndex].quantity || 1) + 1,
         };
         return updatedCart;
       } else {
-        // If product doesn't exist, add it with quantity 1
         return [...prevCart, { ...product, quantity: 1 }];
       }
     });
   };
-  
-  // Remove from cart function
+
   const removeFromCart = (id) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
-  
-  // Render page dynamically based on the current page
+
   const renderPage = () => {
     if (isLoading) {
-      return <div className="flex justify-center items-center h-64">Loading...</div>;
+      return (
+        <div className="flex justify-center items-center h-64">Loading...</div>
+      );
     }
-    
+
     switch (currentPage) {
-      case 'home':
+      case "home":
         return <HomePage setCurrentPage={setCurrentPage} />;
-      case 'products':
-        return <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart} />;
-      case 'cart':
-        return <CartPage cart={cart} setCurrentPage={setCurrentPage} removeFromCart={removeFromCart} />;
-      case 'payment':
+      case "products":
+        return (
+          <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart} />
+        );
+      case "cart":
+        return (
+          <CartPage
+            cart={cart}
+            setCurrentPage={setCurrentPage}
+            removeFromCart={removeFromCart}
+          />
+        );
+      case "payment":
         return <PaymentPage cart={cart} setCurrentPage={setCurrentPage} />;
-      case 'about':
+      case "about":
         return <AboutPage setCurrentPage={setCurrentPage} />;
-      case 'contact':
+      case "contact":
         return <ContactPage setCurrentPage={setCurrentPage} />;
-      case 'login':
-        return <LoginPage setCurrentPage={setCurrentPage} setUser={handleLogin} />;
+      case "login":
+        return (
+          <LoginPage setCurrentPage={setCurrentPage} setUser={handleLogin} />
+        );
+      case "manage-products":
+        return <ManageProductsPage setCurrentPage={setCurrentPage} />;
+      case "add-product":
+        return <AddProductPage setCurrentPage={setCurrentPage} />;
+      case "profile":
+        return (
+          <Profile
+            user={user}
+            setCurrentPage={setCurrentPage}
+            setUserName={setUserName}
+          />
+        );
       default:
         return <HomePage setCurrentPage={setCurrentPage} />;
     }
   };
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <main className="flex-grow">
         <Header setCurrentPage={setCurrentPage} user={user} setUser={setUser} />
-        <Container>
-          {renderPage()}
-        </Container>
+        <Container>{renderPage()}</Container>
       </main>
       <Footer />
     </div>

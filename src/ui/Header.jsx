@@ -1,115 +1,225 @@
-import React, { useState, useEffect } from 'react';
-import { auth, signOut } from '../../firebase-config'; // Make sure to import signOut from firebase-config
+import React, { useState, useEffect } from "react";
+import { auth, signOut } from "../../firebase-config";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-const Header = ({ setCurrentPage }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Header = ({ setCurrentPage, user, setUser }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState("");
+  const [userType, setUserType] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check if user is logged in
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
+    const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
+      if (authUser) {
         setIsLoggedIn(true);
-        // Extract the username (email before @gmail.com)
-        const name = user.email.split('@')[0];
-        setUserName(name);
+
+        const db = getFirestore();
+        const userRef = doc(db, "users", authUser.uid);
+        const docSnap = await getDoc(userRef);
+
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          // Set username from Firestore data
+          setUserName(userData.username || authUser.displayName || "User");
+          setUserType(userData.userType);
+        } else {
+          // Fallback to displayName or email if no username in Firestore
+          setUserName(
+            authUser.displayName || authUser.email.split("@")[0] || "User"
+          );
+        }
       } else {
         setIsLoggedIn(false);
-        setUserName('');
+        setUserName("");
+        setUserType("");
       }
     });
 
-    return () => unsubscribe(); // Clean up the listener when the component unmounts
+    return () => unsubscribe();
   }, []);
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-  }
+  };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setCurrentPage('home'); // Redirect to home or other page after logout
+      setUser(null);
+      setCurrentPage("home");
     } catch (error) {
       console.error("Logout failed", error);
     }
-  }
+  };
 
   return (
-    <header className="bg-green-600 text-white shadow-md">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold">Green Marketplace</h1>
-          </div>
+    <header className="bg-green-700 text-white shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <h1
+          className="text-2xl font-bold cursor-pointer"
+          onClick={() => setCurrentPage("home")}
+        >
+          Green Marketplace
+        </h1>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <button onClick={() => setCurrentPage('home')} className="hover:text-green-200 transition">
-              Home
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex space-x-4 items-center">
+          <button
+            onClick={() => setCurrentPage("home")}
+            className="hover:text-green-200"
+          >
+            Home
+          </button>
+          <button
+            onClick={() => setCurrentPage("products")}
+            className="hover:text-green-200"
+          >
+            Products
+          </button>
+          <button
+            onClick={() => setCurrentPage("about")}
+            className="hover:text-green-200"
+          >
+            About
+          </button>
+          <button
+            onClick={() => setCurrentPage("contact")}
+            className="hover:text-green-200"
+          >
+            Contact
+          </button>
+          {isLoggedIn && (
+            <button
+              onClick={() => setCurrentPage("profile")}
+              className="hover:text-green-200"
+            >
+              Profile
             </button>
-            <button onClick={() => setCurrentPage('products')} className="hover:text-green-200 transition">
-              Products
-            </button>
-            <button onClick={() => setCurrentPage('about')} className="hover:text-green-200 transition">
-              About
-            </button>
-            <button onClick={() => setCurrentPage('contact')} className="hover:text-green-200 transition">
-              Contact
-            </button>
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center space-x-4">
-            <button className="p-2 hover:text-green-200" onClick={handleMobileMenuToggle}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Login/Logout Button */}
-          <div className="flex items-center space-x-4">
-            {isLoggedIn ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-white">{userName}</span>
-                <button onClick={handleLogout} className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-md transition">
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setCurrentPage('login')} className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-md transition">
-                Login
+          )}
+          {userType === "seller" && (
+            <>
+              <button
+                onClick={() => setCurrentPage("add-product")}
+                className="hover:text-green-200"
+              >
+                Add Product
               </button>
-            )}
-            <button onClick={() => setCurrentPage('cart')} className="p-2 hover:text-green-200">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+              <button
+                onClick={() => setCurrentPage("manage-products")}
+                className="hover:text-green-200"
+              >
+                Manage
+              </button>
+            </>
+          )}
+        </nav>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <nav className="md:hidden mt-4 space-y-4">
-            <button onClick={() => setCurrentPage('home')} className="block w-full text-left py-2 px-4 hover:text-green-200">
-              Home
+        {/* User Info / Auth Buttons */}
+        <div className="flex items-center space-x-2">
+          {isLoggedIn ? (
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center">
+                <div className="bg-green-600 rounded-full p-1 mr-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <span
+                  className="font-medium text-green-100 hover:text-white cursor-pointer"
+                  onClick={() => setCurrentPage("profile")}
+                >
+                  {userName}
+                </span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition duration-200"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setCurrentPage("login")}
+              className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition duration-200"
+            >
+              Login
             </button>
-            <button onClick={() => setCurrentPage('products')} className="block w-full text-left py-2 px-4 hover:text-green-200">
-              Products
-            </button>
-            <button onClick={() => setCurrentPage('about')} className="block w-full text-left py-2 px-4 hover:text-green-200">
-              About
-            </button>
-            <button onClick={() => setCurrentPage('contact')} className="block w-full text-left py-2 px-4 hover:text-green-200">
-              Contact
-            </button>
-          </nav>
-        )}
+          )}
+          <button
+            onClick={() => setCurrentPage("cart")}
+            className="ml-2 text-white hover:text-green-200"
+          >
+            🛒
+          </button>
+          <button onClick={handleMobileMenuToggle} className="md:hidden ml-2">
+            ☰
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <nav className="md:hidden bg-green-600 px-4 pb-4 space-y-2 text-sm">
+          <button
+            onClick={() => setCurrentPage("home")}
+            className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+          >
+            Home
+          </button>
+          <button
+            onClick={() => setCurrentPage("products")}
+            className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+          >
+            Products
+          </button>
+          <button
+            onClick={() => setCurrentPage("about")}
+            className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+          >
+            About
+          </button>
+          <button
+            onClick={() => setCurrentPage("contact")}
+            className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+          >
+            Contact
+          </button>
+          {isLoggedIn && (
+            <button
+              onClick={() => setCurrentPage("profile")}
+              className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+            >
+              Profile
+            </button>
+          )}
+          {userType === "seller" && (
+            <>
+              <button
+                onClick={() => setCurrentPage("add-product")}
+                className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+              >
+                Add Product
+              </button>
+              <button
+                onClick={() => setCurrentPage("manage-products")}
+                className="block w-full text-left py-2 hover:bg-green-500 px-2 rounded"
+              >
+                Manage Products
+              </button>
+            </>
+          )}
+        </nav>
+      )}
     </header>
   );
 };
