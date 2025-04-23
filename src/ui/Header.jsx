@@ -118,28 +118,7 @@ const Header = ({ setCurrentPage, user, setUser }) => {
         <div className="flex items-center space-x-2">
           {isLoggedIn ? (
             <div className="flex items-center space-x-3">
-              <div className="flex items-center">
-                <div className="bg-green-600 rounded-full p-1 mr-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <span
-                  className="font-medium text-green-100 hover:text-white cursor-pointer"
-                  onClick={() => setCurrentPage("profile")}
-                >
-                  {userName}
-                </span>
-              </div>
+              <div className="flex items-center"></div>
               <button
                 onClick={handleLogout}
                 className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition duration-200"
