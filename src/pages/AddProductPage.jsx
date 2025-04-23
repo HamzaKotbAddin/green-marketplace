@@ -9,7 +9,7 @@ const AddProductPage = ({ setCurrentPage }) => {
     price: "",
     category: "",
     isEco: true,
-    image: "", // External image URL
+    image: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +50,7 @@ const AddProductPage = ({ setCurrentPage }) => {
         price: parseFloat(price),
         category,
         isEco,
-        image, // Use correct field name
+        image,
         createdAt: new Date(),
       };
 
@@ -74,20 +74,28 @@ const AddProductPage = ({ setCurrentPage }) => {
   };
 
   return (
-    <div className="product-container">
-      <h1 className="product-title">Add New Product</h1>
-      <p className="product-description">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-2">Add New Product</h1>
+      <p className="mb-4 text-gray-600">
         Add a new sustainable and eco-friendly product to the marketplace.
       </p>
 
       {submitSuccess && (
-        <div className="success-message">Product added successfully!</div>
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          Product added successfully!
+        </div>
       )}
-      {submitError && <div className="error-message">{submitError}</div>}
+      {submitError && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {submitError}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="product-form">
-        <div className="form-group">
-          <label htmlFor="title">Product Title</label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block font-medium mb-1" htmlFor="title">
+            Product Title
+          </label>
           <input
             type="text"
             id="title"
@@ -95,11 +103,14 @@ const AddProductPage = ({ setCurrentPage }) => {
             value={formData.title}
             onChange={handleInputChange}
             required
+            className="w-full border border-gray-300 p-2 rounded"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Product Description</label>
+        <div>
+          <label className="block font-medium mb-1" htmlFor="description">
+            Product Description
+          </label>
           <textarea
             id="description"
             name="description"
@@ -107,12 +118,15 @@ const AddProductPage = ({ setCurrentPage }) => {
             onChange={handleInputChange}
             rows="4"
             required
+            className="w-full border border-gray-300 p-2 rounded"
           />
         </div>
 
-        <div className="form-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="price">Price ($)</label>
+            <label className="block font-medium mb-1" htmlFor="price">
+              Price ($)
+            </label>
             <input
               type="number"
               id="price"
@@ -122,17 +136,21 @@ const AddProductPage = ({ setCurrentPage }) => {
               step="0.01"
               min="0"
               required
+              className="w-full border border-gray-300 p-2 rounded"
             />
           </div>
 
           <div>
-            <label htmlFor="category">Category</label>
+            <label className="block font-medium mb-1" htmlFor="category">
+              Category
+            </label>
             <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               required
+              className="w-full border border-gray-300 p-2 rounded"
             >
               <option value="">Select a category</option>
               {categories.map((cat) => (
@@ -144,19 +162,24 @@ const AddProductPage = ({ setCurrentPage }) => {
           </div>
         </div>
 
-        <div className="checkbox-container">
+        <div className="flex items-center space-x-2">
           <input
             type="checkbox"
             id="isEco"
             name="isEco"
             checked={formData.isEco}
             onChange={handleInputChange}
+            className="w-4 h-4"
           />
-          <label htmlFor="isEco">This is an eco-friendly product</label>
+          <label htmlFor="isEco" className="text-sm text-gray-700">
+            This is an eco-friendly product
+          </label>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="image">Image URL</label>
+        <div>
+          <label className="block font-medium mb-1" htmlFor="image">
+            Image URL
+          </label>
           <input
             type="url"
             id="image"
@@ -165,42 +188,48 @@ const AddProductPage = ({ setCurrentPage }) => {
             onChange={handleInputChange}
             placeholder="Enter image URL"
             required
+            className="w-full border border-gray-300 p-2 rounded"
           />
         </div>
 
-        {/* Optional: Preview the image */}
         {formData.image && (
-          <div className="form-group">
-            <p>Image Preview:</p>
+          <div>
+            <p className="mb-1 font-medium">Image Preview:</p>
             <img
               src={formData.image}
               alt="Preview"
-              style={{ maxWidth: "200px", borderRadius: "8px" }}
+              className="max-w-xs rounded border border-gray-200"
             />
           </div>
         )}
 
-        <div className="button-container">
+        <div className="flex flex-col md:flex-row gap-4 mt-4">
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`submit-button ${
-              isSubmitting ? "submit-button-disabled" : ""
+            className={`px-4 py-2 rounded text-white ${
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
             }`}
           >
             {isSubmitting ? "Adding..." : "Add Product"}
           </button>
+
           <button
             type="button"
             onClick={() => setCurrentPage("manage-products")}
-            className="secondary-button"
+            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
             Manage Products
           </button>
         </div>
       </form>
 
-      <button onClick={() => setCurrentPage("home")} className="back-button">
+      <button
+        onClick={() => setCurrentPage("home")}
+        className="mt-6 underline text-blue-600 hover:text-blue-800 text-sm"
+      >
         Back to Home
       </button>
     </div>

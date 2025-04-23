@@ -136,7 +136,7 @@ const Header = ({ setCurrentPage, user, setUser }) => {
           )}
           <button
             onClick={() => setCurrentPage("cart")}
-            className="ml-2 text-white hover:text-green-200"
+            className="ml-2 text-white bg-white hover:text-green-200 "
           >
             🛒
           </button>
