@@ -230,7 +230,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <main className="flex-grow">
-        <Header setCurrentPage={setCurrentPage} user={user} setUser={setUser} />
+        <Header setCurrentPage={setCurrentPage} user={user} setUser={setUser} cart={cart} />
         <Container>{renderPage()}</Container>
       </main>
       <Footer />

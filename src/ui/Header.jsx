@@ -2,11 +2,27 @@ import React, { useState, useEffect } from "react";
 import { auth, signOut } from "../../firebase-config";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-const Header = ({ setCurrentPage, user, setUser }) => {
+
+const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userType, setUserType] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+
+  // compute total items
+  const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+  // for a quick bounce animation when cart changes
+  const [justAdded, setJustAdded] = useState(false);
+  useEffect(() => {
+    if (totalItems > 0) {
+      setJustAdded(true);
+      const t = setTimeout(() => setJustAdded(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [totalItems]);
+  
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
@@ -136,10 +152,22 @@ const Header = ({ setCurrentPage, user, setUser }) => {
           )}
           <button
             onClick={() => setCurrentPage("cart")}
-            className="ml-2 text-white bg-white hover:text-green-200 "
+            className="relative ml-2 text-white hover:text-green-200"
           >
             🛒
+            {totalItems > 0 && (
+              <span
+                className={
+                  `absolute -top-1 -right-2 inline-flex items-center justify-center 
+         bg-red-500 text-white rounded-full text-xs w-5 h-5
+         ${justAdded ? "animate-bounce" : ""}`
+                }
+              >
+                {totalItems}
+              </span>
+            )}
           </button>
+
           <button onClick={handleMobileMenuToggle} className="md:hidden ml-2">
             ☰
           </button>
