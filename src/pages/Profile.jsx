@@ -11,8 +11,9 @@ const Profile = ({ setCurrentPage }) => {
     const fetchUsername = async () => {
       try {
         if (auth.currentUser) {
+          // Fetch from 'users' collection instead of 'userData'
           const userDoc = await getDoc(
-            doc(db, "userData", auth.currentUser.uid)
+            doc(db, "users", auth.currentUser.uid)
           );
           if (userDoc.exists() && userDoc.data().username) {
             setUsername(userDoc.data().username);
@@ -38,12 +39,12 @@ const Profile = ({ setCurrentPage }) => {
         return;
       }
 
-      const userRef = doc(db, "userData", auth.currentUser.uid);
+      // Update in 'users' collection instead of 'userData'
+      const userRef = doc(db, "users", auth.currentUser.uid);
       await updateDoc(userRef, { username });
 
       setIsEditing(false);
       setStatusMessage("Username updated successfully!");
-
       setTimeout(() => setStatusMessage(""), 3000);
     } catch (error) {
       console.error("Error updating username:", error);
@@ -85,11 +86,12 @@ const Profile = ({ setCurrentPage }) => {
             <button
               onClick={() => {
                 setIsEditing(false);
+                // Refetch original from 'users'
                 const fetchUsername = async () => {
                   try {
                     if (auth.currentUser) {
                       const userDoc = await getDoc(
-                        doc(db, "userData", auth.currentUser.uid)
+                        doc(db, "users", auth.currentUser.uid)
                       );
                       if (userDoc.exists() && userDoc.data().username) {
                         setUsername(userDoc.data().username);

@@ -2,47 +2,49 @@ import React, { useState, useEffect } from "react";
 import { auth, signOut } from "../../firebase-config";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-
-const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
+const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userType, setUserType] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
 
-
-  // compute total items
+  // compute total items in cart
   const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  // for a quick bounce animation when cart changes
-  const [justAdded, setJustAdded] = useState(false);
+  // animate badge when cart changes
   useEffect(() => {
     if (totalItems > 0) {
       setJustAdded(true);
-      const t = setTimeout(() => setJustAdded(false), 300);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setJustAdded(false), 300);
+      return () => clearTimeout(timer);
     }
   }, [totalItems]);
-  
 
+  // listen for authentication state changes
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
       if (authUser) {
         setIsLoggedIn(true);
-
         const db = getFirestore();
         const userRef = doc(db, "users", authUser.uid);
-        const docSnap = await getDoc(userRef);
-
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          // Set username from Firestore data
-          setUserName(userData.username || authUser.displayName || "User");
-          setUserType(userData.userType);
-        } else {
-          // Fallback to displayName or email if no username in Firestore
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          const data = snap.data();
           setUserName(
-            authUser.displayName || authUser.email.split("@")[0] || "User"
+            data.username ||
+            authUser.displayName ||
+            authUser.email.split("@")[0] ||
+            "User"
           );
+          setUserType(data.userType || "");
+        } else {
+          setUserName(
+            authUser.displayName ||
+            authUser.email.split("@")[0] ||
+            "User"
+          );
+          setUserType("");
         }
       } else {
         setIsLoggedIn(false);
@@ -50,13 +52,8 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
         setUserType("");
       }
     });
-
     return () => unsubscribe();
   }, []);
-
-  const handleMobileMenuToggle = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   const handleLogout = async () => {
     try {
@@ -68,9 +65,14 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
   return (
     <header className="bg-green-700 text-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-4 flex flex-nowrap items-center justify-between">
+        {/* Logo / Home */}
         <h1
           className="text-2xl font-bold cursor-pointer"
           onClick={() => setCurrentPage("home")}
@@ -78,8 +80,8 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
           Green Marketplace
         </h1>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-4 items-center">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-4">
           <button
             onClick={() => setCurrentPage("home")}
             className="hover:text-green-200"
@@ -104,14 +106,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
           >
             Contact
           </button>
-          {isLoggedIn && (
-            <button
-              onClick={() => setCurrentPage("profile")}
-              className="hover:text-green-200"
-            >
-              Profile
-            </button>
-          )}
+
           {userType === "seller" && (
             <>
               <button
@@ -130,14 +125,13 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
           )}
         </nav>
 
-        {/* User Info / Auth Buttons */}
+        {/* User Info / Cart / Auth Buttons */}
         <div className="flex items-center space-x-2">
           {isLoggedIn ? (
             <div className="flex items-center space-x-3">
-              <div className="flex items-center"></div>
               <button
                 onClick={handleLogout}
-                className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition duration-200"
+                className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition"
               >
                 Logout
               </button>
@@ -145,7 +139,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
           ) : (
             <button
               onClick={() => setCurrentPage("login")}
-              className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition duration-200"
+              className="bg-white text-green-700 px-3 py-1 rounded hover:bg-gray-200 transition"
             >
               Login
             </button>
@@ -157,24 +151,33 @@ const Header = ({ setCurrentPage, user, setUser, cart = [] }) => {
             🛒
             {totalItems > 0 && (
               <span
-                className={
-                  `absolute -top-1 -right-2 inline-flex items-center justify-center 
-         bg-red-500 text-white rounded-full text-xs w-5 h-5
-         ${justAdded ? "animate-bounce" : ""}`
-                }
+                className={`absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm ${justAdded ? "animate-bounce" : ""
+                  }`}
               >
                 {totalItems}
               </span>
             )}
           </button>
-
-          <button onClick={handleMobileMenuToggle} className="md:hidden ml-2">
+          {isLoggedIn && (
+            <button
+              onClick={() => setCurrentPage("profile")}
+              className="ml-4 flex items-center whitespace-nowrap font-medium hover:text-green-200 transition"
+            >
+              <span className="mr-2">Hi, {userName}</span>
+              {/* use any small icon or SVG here */}
+              <span role="img" aria-label="edit profile" className="text-lg">✏️</span>
+            </button>
+          )}
+          <button
+            onClick={toggleMobileMenu}
+            className="md:hidden ml-2"
+          >
             ☰
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <nav className="md:hidden bg-green-600 px-4 pb-4 space-y-2 text-sm">
           <button
