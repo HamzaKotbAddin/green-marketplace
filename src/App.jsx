@@ -155,21 +155,15 @@ function App() {
     setUser(userData);
   };
 
-  const addToCart = (product) => {
-    setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
-        (item) => item.id === product.id
-      );
-
-      if (existingItemIndex >= 0) {
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex] = {
-          ...updatedCart[existingItemIndex],
-          quantity: (updatedCart[existingItemIndex].quantity || 1) + 1,
-        };
-        return updatedCart;
+  const addToCart = (product, qty) => {
+    setCart(prev => {
+      const idx = prev.findIndex(item => item.id === product.id);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx].quantity += qty;
+        return updated;
       } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+        return [...prev, { ...product, quantity: qty }];
       }
     });
   };
@@ -177,6 +171,31 @@ function App() {
   const removeFromCart = (id) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
+
+  const updateQuantity = (productId, delta) => {
+    setCart(prev =>
+      prev
+        .map(item =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity + delta }
+            : item
+        )
+        .filter(item => item.quantity > 0)  // drop if qty falls to 0
+    );
+  };
+
+
+  const setItemQuantity = (productId, newQty) => {
+    setCart(prev =>
+      prev
+        .map(item =>
+          item.id === productId ? { ...item, quantity: newQty } : item
+        )
+        .filter(item => item.quantity > 0)
+    );
+  };
+
+
 
   const renderPage = () => {
     if (isLoading) {
@@ -197,7 +216,9 @@ function App() {
           <CartPage
             cart={cart}
             setCurrentPage={setCurrentPage}
-            removeFromCart={removeFromCart}
+            // removeFromCart={removeFromCart}
+            updateQuantity={updateQuantity}
+            setItemQuantity={setItemQuantity}
           />
         );
       case "payment":
