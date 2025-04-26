@@ -27,6 +27,7 @@ function App() {
   const [cart, setCart] = useState([]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userType, setUserType] = useState(null);
 
   // Initialize: Load cart from localStorage on first load
   useEffect(() => {
@@ -62,6 +63,7 @@ function App() {
             const data = snap.data();
             if (data.cart) setCart(data.cart);
             if (data.currentPage) setCurrentPage(data.currentPage);
+            // if (data.type) setUserType(data.type);
             setIsLoading(false);
           } else {
             // Create user data with current cart if it doesn't exist
@@ -84,6 +86,24 @@ function App() {
     } else {
       setIsLoading(false);
     }
+  }, [user]);
+
+
+  // ── NEW: Listen to users/{uid} for admin/seller flag ──
+  useEffect(() => {
+    if (!user?.uid) return;   // wait for user to be set
+
+    const usersRef   = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(usersRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.userType) {
+          setUserType(data.userType);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   // Persist cart & page on every change for logged-in users
@@ -245,9 +265,9 @@ function App() {
       case "login":
         return <LoginPage setCurrentPage={setCurrentPage} setUser={handleLogin} />;
       case "manage-products":
-        return <ManageProductsPage setCurrentPage={setCurrentPage} />;
+        return <ManageProductsPage setCurrentPage={setCurrentPage}  user={user} userType={userType} />;
       case "add-product":
-        return <AddProductPage setCurrentPage={setCurrentPage} />;
+        return <AddProductPage setCurrentPage={setCurrentPage}  user={user} />;
       case "profile":
         return <Profile user={user} setCurrentPage={setCurrentPage} />;
       default:
@@ -264,6 +284,7 @@ function App() {
           setUser={setUser}
           cart={cart}
           setCart={setCart}
+          userType={userType} 
         />
         <Container>{renderPage()}</Container>
       </main>

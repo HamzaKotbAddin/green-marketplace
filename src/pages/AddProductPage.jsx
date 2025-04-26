@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { db } from "../../firebase-config";
 import { collection, addDoc } from "firebase/firestore";
 
-const AddProductPage = ({ setCurrentPage }) => {
+const AddProductPage = ({ setCurrentPage, user }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -52,6 +52,7 @@ const AddProductPage = ({ setCurrentPage }) => {
         isEco,
         image,
         createdAt: new Date(),
+        ownerId: user.uid,
       };
 
       await addDoc(collection(db, "products"), productData);

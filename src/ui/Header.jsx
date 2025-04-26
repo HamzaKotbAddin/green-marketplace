@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { auth, signOut } from "../../firebase-config";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
+const Header = ({ setCurrentPage, user, setUser, cart = [], setCart  }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userType, setUserType] = useState("");
@@ -112,7 +112,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
             Contact
           </button>
 
-          {userType === "seller" && (
+          {(userType === "seller" || userType === "admin") && (
             <>
               <button
                 onClick={() => setCurrentPage("add-product")}
@@ -217,7 +217,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
               Profile
             </button>
           )}
-          {userType === "seller" && (
+          {(userType === "seller" || userType === "admin") &&(
             <>
               <button
                 onClick={() => setCurrentPage("add-product")}

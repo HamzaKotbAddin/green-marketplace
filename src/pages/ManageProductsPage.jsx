@@ -16,7 +16,10 @@ import {
   deleteObject,
 } from "firebase/storage";
 
-const ManageProductsPage = ({ setCurrentPage }) => {
+
+
+const ManageProductsPage = ({ setCurrentPage, user , userType }) => {
+  const userId = user?.uid;
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState({ text: "", type: "" });
@@ -24,6 +27,7 @@ const ManageProductsPage = ({ setCurrentPage }) => {
   const [newImage, setNewImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  
 
   const categories = [
     "coffee_accessories",
@@ -238,13 +242,12 @@ const ManageProductsPage = ({ setCurrentPage }) => {
 
       {message.text && (
         <div
-          className={`p-4 mb-6 rounded-md ${
-            message.type === "error"
+          className={`p-4 mb-6 rounded-md ${message.type === "error"
               ? "bg-red-100 text-red-700"
               : message.type === "success"
-              ? "bg-green-100 text-green-700"
-              : "bg-blue-100 text-blue-700"
-          }`}
+                ? "bg-green-100 text-green-700"
+                : "bg-blue-100 text-blue-700"
+            }`}
         >
           {message.text}
         </div>
@@ -433,9 +436,8 @@ const ManageProductsPage = ({ setCurrentPage }) => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition mr-2 ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition mr-2 ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                 >
                   {isLoading ? "Updating..." : "Update Product"}
                 </button>
@@ -488,38 +490,47 @@ const ManageProductsPage = ({ setCurrentPage }) => {
                     {product.category?.replace("_", " ") || "N/A"}
                   </td>
                   <td className="py-3 px-4">
-                    {confirmDelete === product.id ? (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete(null)}
-                          className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300 transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                  {(product.ownerId === userId  || userType === "admin")  ? (
+                      // If this seller owns it, show confirm or Edit/Delete:
+                      confirmDelete === product.id ? (
+                        <div className="flex space-x-2">
+                          {/* Confirm delete */}
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(null)}
+                            className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex space-x-2">
+                          {/* Edit/Delete buttons */}
+                          <button
+                            onClick={() => handleEdit(product)}
+                            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteConfirm(product.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )
                     ) : (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteConfirm(product.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      // Otherwise, show placeholder or nothing
+                      <span className="text-gray-400 italic">Not yours</span>
                     )}
                   </td>
+
                 </tr>
               ))}
             </tbody>
