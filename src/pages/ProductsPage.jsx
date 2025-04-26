@@ -121,7 +121,7 @@ const ProductsPage = ({ setCurrentPage, addToCart, cart }) => {
 
               {/* Quantity & Add */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
+                <div  className="flex items-center justify-center gap-10 mb-3">
                   <button
                     onClick={() => {
                       const q = (quantities[product.id] || 1) - 1;
@@ -136,17 +136,21 @@ const ProductsPage = ({ setCurrentPage, addToCart, cart }) => {
                   </button>
                   <input
                     type="number"
-                    value={quantities[product.id] || 1}
+                    value={quantities[
+                      product.id
+                    ] || 1}
                     onChange={(e) =>
                       setQuantities((prev) => ({
                         ...prev,
-                        [product.id]: Math.max(
+                        [
+                          product.id
+                        ]: Math.max(
                           1,
                           parseInt(e.target.value, 10) || 1
                         ),
                       }))
                     }
-                    className="w-12 text-center border rounded"
+                    className="w-12 text-center border rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <button
                     onClick={() => {
