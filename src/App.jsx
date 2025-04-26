@@ -101,7 +101,7 @@ function App() {
   const handleLogin = async (userData) => {
     // Keep track of current cart before login
     const currentCart = [...cart];
-    
+
     if (user && user.isAnonymous) {
       try {
         const anonRef = doc(db, "userData", user.uid);
@@ -124,20 +124,20 @@ function App() {
       try {
         const userDataRef = doc(db, "userData", userData.uid);
         const userSnap = await getDoc(userDataRef);
-        
+
         if (userSnap.exists()) {
           // User exists - we need to merge their existing cart with local cart
           const existingData = userSnap.data();
           const existingCart = existingData.cart || [];
-          
+
           if (currentCart.length > 0) {
             // We have items to merge
             const mergedCart = [...existingCart];
-            
+
             // Add or update items from current cart
             currentCart.forEach(localItem => {
               const existingItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
-              
+
               if (existingItemIndex >= 0) {
                 // Item exists in both carts - add quantities
                 mergedCart[existingItemIndex].quantity += localItem.quantity;
@@ -146,7 +146,7 @@ function App() {
                 mergedCart.push(localItem);
               }
             });
-            
+
             // Update with merged cart
             await updateDoc(userDataRef, {
               cart: mergedCart,
@@ -165,10 +165,10 @@ function App() {
         console.error("Error merging carts during login:", error);
       }
     }
-    
+
     // Clear localStorage cart after successful login
     localStorage.removeItem('cartItems');
-    
+
     // Set user
     setUser(userData);
   };
@@ -224,6 +224,19 @@ function App() {
           />
         );
       case "payment":
+        if (!user) {
+          return (
+            <div className="max-w-md mx-auto p-6">
+              <p className="mb-4 text-red-600 font-semibold">
+                You must log in or register before proceeding to payment.
+              </p>
+              <LoginPage
+                setCurrentPage={setCurrentPage}
+                setUser={handleLogin}
+              />
+            </div>
+          );
+        }
         return <PaymentPage cart={cart} setCurrentPage={setCurrentPage} />;
       case "about":
         return <AboutPage setCurrentPage={setCurrentPage} />;
