@@ -213,7 +213,7 @@ function App() {
       case "home":
         return <HomePage setCurrentPage={setCurrentPage} />;
       case "products":
-        return <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart} />;
+        return <ProductsPage setCurrentPage={setCurrentPage} addToCart={addToCart}  cart={cart} />;
       case "cart":
         return (
           <CartPage

@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { db, collection, onSnapshot } from "../../firebase-config";
 
-const ProductsPage = ({ setCurrentPage, addToCart }) => {
+const ProductsPage = ({ setCurrentPage, addToCart, cart }) => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [quantities, setQuantities] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalProduct, setModalProduct] = useState(null);
+
+  useEffect(() => {
+    if (cart.length === 0) {
+      localStorage.removeItem('cartPrompted');
+    }
+  }, [cart]);
 
   // Define categories
   const categories = [
@@ -55,11 +63,10 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
         <div className="flex flex-wrap gap-4">
           <button
             onClick={() => setSelectedCategory("all")}
-            className={`px-4 py-2 rounded-md ${
-              selectedCategory === "all"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-md ${selectedCategory === "all"
+              ? "bg-green-600 text-white"
+              : "bg-gray-200"
+              }`}
           >
             All
           </button>
@@ -67,11 +74,10 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-md ${
-                selectedCategory === cat
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-md ${selectedCategory === cat
+                ? "bg-green-600 text-white"
+                : "bg-gray-200"
+                }`}
             >
               {cat.replace(/_/g, " ").toUpperCase()}
             </button>
@@ -153,9 +159,20 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
                   </button>
                 </div>
                 <button
-                  onClick={() =>
-                    addToCart(product, quantities[product.id] || 1)
-                  }
+                  onClick={() => {
+                    // was the cart empty before adding?
+                    const wasEmpty = cart.length === 0;
+
+                    // add the item as usual
+                    addToCart(product, quantities[product.id] || 1);
+
+                    // if it was empty and we’ve never prompted before…
+                    if (wasEmpty && !localStorage.getItem('cartPrompted')) {
+                      localStorage.setItem('cartPrompted', 'true');
+                      setModalProduct(product);
+                      setShowModal(true);
+                    }
+                  }}
                   className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
                 >
                   Add to Cart
@@ -173,6 +190,33 @@ const ProductsPage = ({ setCurrentPage, addToCart }) => {
       >
         Back to Home
       </button>
+      {showModal && modalProduct && (
+        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full text-center border-4 border-green-600">
+            <p className="mb-4 text-lg">
+              <strong>{modalProduct.title}</strong> has been added to your cart!
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setCurrentPage("cart");
+                }}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition"
+              >
+                Go to Cart
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-md transition"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
