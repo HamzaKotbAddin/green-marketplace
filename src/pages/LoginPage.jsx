@@ -258,7 +258,7 @@ const LoginPage = ({ setCurrentPage, setUser }) => {
             onMouseOut={(e) => (e.target.style.backgroundColor = "white")}
           >
             <img
-              src="/google-icon.png"
+              src="/google-g.svg"
               alt="Google"
               style={{ height: "24px", marginRight: "12px" }}
             />
