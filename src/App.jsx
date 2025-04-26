@@ -28,6 +28,25 @@ function App() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initialize: Load cart from localStorage on first load
+  useEffect(() => {
+    const localCart = localStorage.getItem('cartItems');
+    if (localCart) {
+      try {
+        setCart(JSON.parse(localCart));
+      } catch (error) {
+        console.error("Error loading cart from localStorage:", error);
+      }
+    }
+  }, []);
+
+  // Save non-logged in user cart to localStorage
+  useEffect(() => {
+    if (!user && cart.length > 0) {
+      localStorage.setItem('cartItems', JSON.stringify(cart));
+    }
+  }, [cart, user]);
+
   // Single snapshot listener: restore or seed, then clear loading
   useEffect(() => {
     const cartRef = { current: cart };
@@ -45,6 +64,7 @@ function App() {
             if (data.currentPage) setCurrentPage(data.currentPage);
             setIsLoading(false);
           } else {
+            // Create user data with current cart if it doesn't exist
             setDoc(userDataRef, {
               cart: cartRef.current,
               currentPage: pageRef.current,
@@ -66,7 +86,7 @@ function App() {
     }
   }, [user]);
 
-  // Persist cart & page on every change
+  // Persist cart & page on every change for logged-in users
   useEffect(() => {
     if (user && user.uid) {
       const userDataRef = doc(db, "userData", user.uid);
@@ -79,6 +99,9 @@ function App() {
   }, [cart, currentPage, user]);
 
   const handleLogin = async (userData) => {
+    // Keep track of current cart before login
+    const currentCart = [...cart];
+    
     if (user && user.isAnonymous) {
       try {
         const anonRef = doc(db, "userData", user.uid);
@@ -96,7 +119,57 @@ function App() {
       } catch (err) {
         console.error("Anonymous transfer error:", err);
       }
+    } else {
+      // Non-anonymous login: Check if we need to merge carts
+      try {
+        const userDataRef = doc(db, "userData", userData.uid);
+        const userSnap = await getDoc(userDataRef);
+        
+        if (userSnap.exists()) {
+          // User exists - we need to merge their existing cart with local cart
+          const existingData = userSnap.data();
+          const existingCart = existingData.cart || [];
+          
+          if (currentCart.length > 0) {
+            // We have items to merge
+            const mergedCart = [...existingCart];
+            
+            // Add or update items from current cart
+            currentCart.forEach(localItem => {
+              const existingItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
+              
+              if (existingItemIndex >= 0) {
+                // Item exists in both carts - add quantities
+                mergedCart[existingItemIndex].quantity += localItem.quantity;
+              } else {
+                // New item - add to merged cart
+                mergedCart.push(localItem);
+              }
+            });
+            
+            // Update with merged cart
+            await updateDoc(userDataRef, {
+              cart: mergedCart,
+              lastUpdated: new Date()
+            });
+          }
+        } else {
+          // First time user - create cart data with current cart
+          await setDoc(userDataRef, {
+            cart: currentCart,
+            currentPage: currentPage,
+            lastUpdated: new Date()
+          });
+        }
+      } catch (error) {
+        console.error("Error merging carts during login:", error);
+      }
     }
+    
+    // Clear localStorage cart after successful login
+    localStorage.removeItem('cartItems');
+    
+    // Set user
     setUser(userData);
   };
 

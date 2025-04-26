@@ -57,6 +57,11 @@ const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
 
   const handleLogout = async () => {
     try {
+      // Save cart to localStorage before logout so it's preserved
+      if (cart && cart.length > 0) {
+        localStorage.setItem('cartItems', JSON.stringify(cart));
+      }
+      
       await signOut(auth);
       setUser(null);
       setCurrentPage("home");
@@ -81,7 +86,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
         </h1>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-4">
+        <nav className="hidden md:flex flex-1 justify-center space-x-4 items-center flex-nowrap">
           <button
             onClick={() => setCurrentPage("home")}
             className="hover:text-green-200"
@@ -161,7 +166,7 @@ const Header = ({ setCurrentPage, user, setUser, cart = [], setCart }) => {
           {isLoggedIn && (
             <button
               onClick={() => setCurrentPage("profile")}
-              className="ml-4 flex items-center whitespace-nowrap font-medium hover:text-green-200 transition"
+              className="ml-4 flex-shrink-0 flex items-center whitespace-nowrap font-medium hover:text-green-200 transition"
             >
               <span className="mr-2">Hi, {userName}</span>
               {/* use any small icon or SVG here */}
